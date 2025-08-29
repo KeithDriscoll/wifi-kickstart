@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "Wi‑Fi Kickstart",
+  "version": "1.0",
+  "description": "Detects network issues, runs diagnostics, and opens the Wi‑Fi captive portal login page — works with ad‑blockers & pop‑up blockers.",
+  "homepage_url": "https://keithdriscoll.nyc",
+  "permissions": [
+    "tabs",
+    "alarms",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://www.google.com/*",
+    "http://neverssl.com/*",
+    "https://ipinfo.io/*",
+    "https://download.thinkbroadband.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_title": "Wi‑Fi Kickstart",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  }
+}
