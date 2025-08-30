@@ -28,5 +28,25 @@ Want to inspect or contribute? [Clone this repo](https://github.com/your-repo)
 
 ## 📁 File Structure
 
+wifi-kickstart/
+├── popup.html
+├── popup.css
+├── popup.js
+├── background.js
+├── manifest.json
+├── icons/
+├── README.md
+├── LICENSE
+└── .gitignore
+
+## 💬 Feedback & Support
+
+- [🔗 Plugin Homepage](https://wifi-kickstart.com)
+- [🛠️ Report Issue](https://helpdesk.wifi-kickstart.com)
+
+---
+
+Made with ❤️ in NYC by [Keith Driscoll](https://github.com/keithdriscoll)
+
 
 https://github.com/notifications
