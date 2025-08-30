@@ -30,6 +30,8 @@ document.addEventListener("DOMContentLoaded", () => {
   initModeToggle();
   initToggleFeatures();
   initTheme();
+  initThemeSystem();
+  initThemeSystem();
 
   // Initial data load
   requestConnectionCheck();
@@ -426,7 +428,217 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function applyTheme(enabled) {
+    if (enabled) {
+      // Dark mode: purple theme that overrides everything
+      const root = document.documentElement;
+      root.style.setProperty('--primary-color', '#b48cff');
+      root.style.setProperty('--bg-primary', '#1a0e2a');
+      root.style.setProperty('--bg-secondary', '#2b1850');
+      root.style.setProperty('--text-primary', '#e0d7f5');
+      root.style.setProperty('--success-color', '#28a745');
+      root.style.setProperty('--warning-color', '#f9a825');
+      root.style.setProperty('--switch-active', '#6a3fc9');
+    } else {
+      // Light mode: check for saved custom theme
+      chrome.storage.local.get(["customTheme", "currentThemeName"], (data) => {
+        if (data.customTheme && data.currentThemeName !== "dark") {
+          applyCustomTheme(data.customTheme);
+        } else {
+          // Default light theme
+          const root = document.documentElement;
+          root.style.setProperty('--primary-color', '#0078d4');
+          root.style.setProperty('--bg-primary', '#f9f9f9');
+          root.style.setProperty('--bg-secondary', '#ffffff');
+          root.style.setProperty('--text-primary', '#333');
+          root.style.setProperty('--success-color', '#28a745');
+          root.style.setProperty('--warning-color', '#f9a825');
+          root.style.setProperty('--switch-active', '#0078d4');
+        }
+      });
+    }
+    
     document.body.classList.toggle("dark", enabled);
     document.documentElement.classList.toggle("dark", enabled);
+  }
+
+  function initThemeSystem() {
+    const themeBtn = document.getElementById("themeBtn");
+    const themePanel = document.getElementById("themePanel");
+    const closeThemePanel = document.getElementById("closeThemePanel");
+    const customColorsBtn = document.getElementById("customColorsBtn");
+    const customColorsPanel = document.getElementById("customColorsPanel");
+    const closeCustomPanel = document.getElementById("closeCustomPanel");
+
+    // Preset themes data
+    const themes = {
+      default: { primary: "#0078d4", bg: "#f9f9f9", success: "#28a745", warning: "#f9a825" },
+      ocean: { primary: "#0891b2", bg: "#f0f9ff", success: "#059669", warning: "#0891b2" },
+      forest: { primary: "#16a34a", bg: "#f7fdf7", success: "#22c55e", warning: "#eab308" },
+      sunset: { primary: "#ea580c", bg: "#fff7ed", success: "#f97316", warning: "#eab308" },
+      purple: { primary: "#9333ea", bg: "#faf5ff", success: "#a855f7", warning: "#d946ef" }
+    };
+
+    // Open theme panel
+    if (themeBtn && themePanel) {
+      themeBtn.addEventListener("click", () => {
+        themePanel.classList.add("open");
+        elements.sidePanel.style.zIndex = "999";
+      });
+    }
+
+    // Close theme panel
+    if (closeThemePanel && themePanel) {
+      closeThemePanel.addEventListener("click", () => {
+        themePanel.classList.remove("open");
+        elements.sidePanel.style.zIndex = "1000";
+      });
+    }
+
+    // Open custom colors panel
+    if (customColorsBtn && customColorsPanel) {
+      customColorsBtn.addEventListener("click", () => {
+        customColorsPanel.classList.add("open");
+        themePanel.style.zIndex = "1099";
+        loadCurrentColors();
+      });
+    }
+
+    // Close custom colors panel
+    if (closeCustomPanel && customColorsPanel) {
+      closeCustomPanel.addEventListener("click", () => {
+        customColorsPanel.classList.remove("open");
+        themePanel.style.zIndex = "1100";
+      });
+    }
+
+    // Preset theme selection
+    document.querySelectorAll(".theme-option").forEach(option => {
+      option.addEventListener("click", () => {
+        const themeName = option.dataset.theme;
+        if (themes[themeName]) {
+          // Turn off dark mode when selecting a preset theme
+          const darkToggle = document.getElementById("toggleDarkMode");
+          if (darkToggle) {
+            darkToggle.checked = false;
+            chrome.storage.local.set({ darkModeEnabled: false });
+          }
+          
+          applyCustomTheme(themes[themeName]);
+          chrome.storage.local.set({ 
+            customTheme: themes[themeName],
+            currentThemeName: themeName 
+          });
+          
+          // Update selection visual
+          document.querySelectorAll(".theme-option").forEach(opt => 
+            opt.classList.remove("selected"));
+          option.classList.add("selected");
+          
+          // Remove dark mode classes
+          document.body.classList.remove("dark");
+          document.documentElement.classList.remove("dark");
+        }
+      });
+    });
+
+    // Custom color controls
+    const applyBtn = document.getElementById("applyCustom");
+    const resetBtn = document.getElementById("resetCustom");
+
+    if (applyBtn) {
+      applyBtn.addEventListener("click", () => {
+        const customTheme = {
+          primary: document.getElementById("primaryColorPicker").value,
+          bg: document.getElementById("bgColorPicker").value,
+          success: document.getElementById("successColorPicker").value,
+          warning: document.getElementById("warningColorPicker").value
+        };
+        
+        // Turn off dark mode when applying custom colors
+        const darkToggle = document.getElementById("toggleDarkMode");
+        if (darkToggle) {
+          darkToggle.checked = false;
+          chrome.storage.local.set({ darkModeEnabled: false });
+        }
+        
+        applyCustomTheme(customTheme);
+        chrome.storage.local.set({ 
+          customTheme: customTheme,
+          currentThemeName: "custom" 
+        });
+        
+        // Remove dark mode classes
+        document.body.classList.remove("dark");
+        document.documentElement.classList.remove("dark");
+      });
+    }
+
+    if (resetBtn) {
+      resetBtn.addEventListener("click", () => {
+        applyCustomTheme(themes.default);
+        chrome.storage.local.set({ 
+          customTheme: themes.default,
+          currentThemeName: "default" 
+        });
+        loadCurrentColors();
+      });
+    }
+
+    // Load saved theme
+    chrome.storage.local.get(["customTheme", "currentThemeName"], (data) => {
+      if (data.customTheme) {
+        applyCustomTheme(data.customTheme);
+        
+        // Mark selected preset if applicable
+        if (data.currentThemeName && data.currentThemeName !== "custom") {
+          const selectedOption = document.querySelector(`[data-theme="${data.currentThemeName}"]`);
+          if (selectedOption) selectedOption.classList.add("selected");
+        }
+      }
+    });
+  }
+
+  function applyCustomTheme(theme) {
+    const root = document.documentElement;
+    root.style.setProperty('--primary-color', theme.primary);
+    root.style.setProperty('--bg-primary', theme.bg);
+    root.style.setProperty('--success-color', theme.success);
+    root.style.setProperty('--warning-color', theme.warning);
+    root.style.setProperty('--switch-active', theme.primary);
+    
+    // Handle optional text and background colors for dark mode
+    if (theme.textPrimary) {
+      root.style.setProperty('--text-primary', theme.textPrimary);
+    }
+    if (theme.bgSecondary) {
+      root.style.setProperty('--bg-secondary', theme.bgSecondary);
+    }
+  }
+
+  function loadCurrentColors() {
+    const style = getComputedStyle(document.documentElement);
+    const primaryPicker = document.getElementById("primaryColorPicker");
+    const bgPicker = document.getElementById("bgColorPicker");
+    const successPicker = document.getElementById("successColorPicker");
+    const warningPicker = document.getElementById("warningColorPicker");
+
+    if (primaryPicker) primaryPicker.value = rgbToHex(style.getPropertyValue('--primary-color').trim());
+    if (bgPicker) bgPicker.value = rgbToHex(style.getPropertyValue('--bg-primary').trim());
+    if (successPicker) successPicker.value = rgbToHex(style.getPropertyValue('--success-color').trim());
+    if (warningPicker) warningPicker.value = rgbToHex(style.getPropertyValue('--warning-color').trim());
+  }
+
+  function rgbToHex(color) {
+    // Handle hex colors that are already in correct format
+    if (color.startsWith('#')) return color;
+    
+    // Handle rgb colors
+    const rgb = color.match(/\d+/g);
+    if (rgb) {
+      return '#' + rgb.map(x => parseInt(x).toString(16).padStart(2, '0')).join('');
+    }
+    
+    // Fallback for named colors or other formats
+    return '#0078d4';
   }
 });

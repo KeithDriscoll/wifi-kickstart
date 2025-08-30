@@ -47,7 +47,7 @@ wifi-kickstart/
 
 ---
 
-Made with ❤️ in NYC by [Keith Driscoll](https://github.com/keithdriscoll)
+Made with ❤️ in NYC by Keith Driscoll (https://github.com/keithdriscoll)
 
 
 https://github.com/notifications

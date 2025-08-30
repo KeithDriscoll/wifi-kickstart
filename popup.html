@@ -21,6 +21,78 @@
       <div id="status">Status: Checking...</div>
     </div>
 
+  <!-- Theme Selection Panel -->
+  <div id="themePanel">
+    <div id="closeThemePanel">←</div>
+    <div class="theme-panel-content">
+      <h3>Choose Theme</h3>
+      
+      <!-- Preset Themes -->
+      <h4>Preset Themes</h4>
+      <div class="preset-themes">
+        <div class="theme-option" data-theme="default">
+          <div class="theme-preview default-theme"></div>
+          <span>Default Blue</span>
+        </div>
+        <div class="theme-option" data-theme="ocean">
+          <div class="theme-preview ocean-theme"></div>
+          <span>Ocean Waves</span>
+        </div>
+        <div class="theme-option" data-theme="forest">
+          <div class="theme-preview forest-theme"></div>
+          <span>Forest Green</span>
+        </div>
+        <div class="theme-option" data-theme="sunset">
+          <div class="theme-preview sunset-theme"></div>
+          <span>Sunset Orange</span>
+        </div>
+        <div class="theme-option" data-theme="purple">
+          <div class="theme-preview purple-theme"></div>
+          <span>Purple Rain</span>
+        </div>
+      </div>
+
+      <hr class="settings-divider">
+
+      <!-- Custom Colors -->
+      <h4>Custom Colors</h4>
+      <button id="customColorsBtn" class="custom-colors-button">🎯 Custom Colors</button>
+    </div>
+  </div>
+
+  <!-- Custom Colors Panel -->
+  <div id="customColorsPanel">
+    <div id="closeCustomPanel">←</div>
+    <div class="custom-panel-content">
+      <h3>Custom Colors</h3>
+      
+      <div class="color-picker">
+        <label>Primary Color</label>
+        <input type="color" id="primaryColorPicker" value="#0078d4">
+      </div>
+      
+      <div class="color-picker">
+        <label>Background</label>
+        <input type="color" id="bgColorPicker" value="#f9f9f9">
+      </div>
+      
+      <div class="color-picker">
+        <label>Success Color</label>
+        <input type="color" id="successColorPicker" value="#28a745">
+      </div>
+      
+      <div class="color-picker">
+        <label>Warning Color</label>
+        <input type="color" id="warningColorPicker" value="#f9a825">
+      </div>
+
+      <div class="custom-actions">
+        <button id="applyCustom" class="apply-button">Apply Colors</button>
+        <button id="resetCustom" class="reset-button">Reset to Default</button>
+      </div>
+    </div>
+  </div>
+
     <!-- IP Address (always visible) -->
     <div class="section simple-visible">
       <div class="label">Network Information</div>
@@ -117,6 +189,10 @@
           <input type="checkbox" id="toggleDarkMode">
           <span class="slider"></span>
         </label>
+      </div>
+
+      <div class="theme-selector">
+        <button id="themeBtn" class="theme-button">🎨 Choose Theme</button>
       </div>
     </div>
   </div>
