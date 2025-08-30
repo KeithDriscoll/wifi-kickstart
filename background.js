@@ -91,5 +91,5 @@ chrome.action.onClicked.addListener(() => {
   checkConnection(true);
 });
 
-// Auto-check connection every 10 seconds
-setInterval(() => checkConnection(false), 10000);
+// Auto-check connection every 5 seconds
+setInterval(() => checkConnection(false), 5000);

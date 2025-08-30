@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let latestLatency = null;
   let latestJitter = null;
   let latestSpeed = null;
-  let isAdvancedMode = true; // Default to advanced mode
+  let isAdvancedMode = true;
 
   // Initialize everything
   initSidePanel();
@@ -31,7 +31,9 @@ document.addEventListener("DOMContentLoaded", () => {
   initToggleFeatures();
   initTheme();
   initThemeSystem();
-  initThemeSystem();
+
+  // Force CSS variables to be applied on load
+  reapplyThemeState();
 
   // Initial data load
   requestConnectionCheck();
@@ -51,16 +53,74 @@ document.addEventListener("DOMContentLoaded", () => {
     elements.runSpeedBtnSimple.addEventListener("click", () => runSpeedTest(true));
   }
 
+  // FIXED: Reapply theme state when panel is opened to prevent CSS reset
+  function reapplyThemeState() {
+    chrome.storage.local.get(["darkModeEnabled", "customTheme", "currentThemeName"], (data) => {
+      const isDarkMode = data.darkModeEnabled ?? false;
+      
+      if (isDarkMode) {
+        // Force dark mode styles
+        document.body.classList.add("dark");
+        document.documentElement.classList.add("dark");
+        applyDarkModeTheme();
+      } else if (data.customTheme) {
+        // Apply saved custom theme
+        document.body.classList.remove("dark");
+        document.documentElement.classList.remove("dark");
+        applyCustomTheme(data.customTheme);
+      } else {
+        // Apply default theme
+        document.body.classList.remove("dark");
+        document.documentElement.classList.remove("dark");
+        applyDefaultTheme();
+      }
+    });
+  }
+
+  function applyDarkModeTheme() {
+    const root = document.documentElement;
+    root.style.setProperty('--bg-primary', '#1a0e2a');
+    root.style.setProperty('--bg-secondary', '#2b1850');
+    root.style.setProperty('--text-primary', '#e0d7f5');
+    root.style.setProperty('--text-secondary', '#aaa');
+    root.style.setProperty('--primary-color', '#b48cff');
+    root.style.setProperty('--border-color', '#444');
+    root.style.setProperty('--switch-bg', '#555');
+    root.style.setProperty('--switch-active', '#6a3fc9');
+    root.style.setProperty('--success-color', '#28a745');
+    root.style.setProperty('--warning-color', '#f9a825');
+    root.style.setProperty('--error-color', '#d93025');
+  }
+
+  function applyDefaultTheme() {
+    const root = document.documentElement;
+    root.style.setProperty('--primary-color', '#0078d4');
+    root.style.setProperty('--bg-primary', '#f9f9f9');
+    root.style.setProperty('--bg-secondary', '#ffffff');
+    root.style.setProperty('--text-primary', '#333');
+    root.style.setProperty('--text-secondary', '#666');
+    root.style.setProperty('--border-color', '#ddd');
+    root.style.setProperty('--switch-bg', '#ccc');
+    root.style.setProperty('--switch-active', '#0078d4');
+    root.style.setProperty('--success-color', '#28a745');
+    root.style.setProperty('--warning-color', '#f9a825');
+    root.style.setProperty('--error-color', '#d93025');
+  }
+
   function initSidePanel() {
     if (elements.menuToggle && elements.sidePanel && elements.closePanel) {
       elements.menuToggle.addEventListener("click", () => {
         elements.sidePanel.classList.add("open");
         elements.menuToggle.classList.add("hidden");
+        // FIXED: Reapply theme when panel opens to prevent CSS reset
+        setTimeout(() => reapplyThemeState(), 50);
       });
 
       elements.closePanel.addEventListener("click", () => {
         elements.sidePanel.classList.remove("open");
         elements.menuToggle.classList.remove("hidden");
+        // FIXED: Reapply theme when panel closes 
+        setTimeout(() => reapplyThemeState(), 50);
       });
     }
   }
@@ -70,7 +130,7 @@ document.addEventListener("DOMContentLoaded", () => {
     
     // Load saved mode preference
     chrome.storage.local.get("advancedModeEnabled", (data) => {
-      isAdvancedMode = data.advancedModeEnabled ?? true; // Default to advanced
+      isAdvancedMode = data.advancedModeEnabled ?? true;
       if (advancedToggle) advancedToggle.checked = isAdvancedMode;
       applyMode(isAdvancedMode);
     });
@@ -86,17 +146,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function applyMode(advanced) {
-    // Remove existing classes first to prevent conflicts
     document.body.classList.remove("advanced-mode", "simple-mode");
     
-    // Add the appropriate class
     if (advanced) {
       document.body.classList.add("advanced-mode");
     } else {
       document.body.classList.add("simple-mode");
     }
     
-    // Reset measurements for current mode
     if (advanced && latestLatency === null) {
       measureLatency();
       measureJitter();
@@ -217,7 +274,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function getJitterMetrics(jitter) {
     if (jitter > 100) {
-      return { color: "#d93025", emoji: "🔴", tooltip: "Poor stability — expect stuttering" };
+      return { color: "#d93025", emoji: "🔴", tooltip: "Poor stability – expect stuttering" };
     } else if (jitter > 30) {
       return { color: "#f9a825", emoji: "🟡", tooltip: "Acceptable stability" };
     } else {
@@ -386,7 +443,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const toggleEl = document.getElementById(id);
         const targetEl = document.getElementById(elementId);
         if (toggleEl && targetEl) {
-          const enabled = data[key] ?? true; // default to true
+          const enabled = data[key] ?? true;
           toggleEl.checked = enabled;
           targetEl.style.display = enabled ? "block" : "none";
         }
@@ -417,48 +474,35 @@ document.addEventListener("DOMContentLoaded", () => {
       applyTheme(enabled);
     });
 
-    // Save on change
+    // Save on change - FIXED: Properly handle theme switching
     if (darkToggle) {
       darkToggle.addEventListener("change", () => {
         const enabled = darkToggle.checked;
         chrome.storage.local.set({ darkModeEnabled: enabled });
         applyTheme(enabled);
+        // Force immediate reapplication after a brief delay
+        setTimeout(() => reapplyThemeState(), 100);
       });
     }
   }
 
   function applyTheme(enabled) {
     if (enabled) {
-      // Dark mode: purple theme that overrides everything
-      const root = document.documentElement;
-      root.style.setProperty('--primary-color', '#b48cff');
-      root.style.setProperty('--bg-primary', '#1a0e2a');
-      root.style.setProperty('--bg-secondary', '#2b1850');
-      root.style.setProperty('--text-primary', '#e0d7f5');
-      root.style.setProperty('--success-color', '#28a745');
-      root.style.setProperty('--warning-color', '#f9a825');
-      root.style.setProperty('--switch-active', '#6a3fc9');
+      document.body.classList.add("dark");
+      document.documentElement.classList.add("dark");
+      applyDarkModeTheme();
     } else {
-      // Light mode: check for saved custom theme
+      document.body.classList.remove("dark");
+      document.documentElement.classList.remove("dark");
+      // Check for saved custom theme or use default
       chrome.storage.local.get(["customTheme", "currentThemeName"], (data) => {
         if (data.customTheme && data.currentThemeName !== "dark") {
           applyCustomTheme(data.customTheme);
         } else {
-          // Default light theme
-          const root = document.documentElement;
-          root.style.setProperty('--primary-color', '#0078d4');
-          root.style.setProperty('--bg-primary', '#f9f9f9');
-          root.style.setProperty('--bg-secondary', '#ffffff');
-          root.style.setProperty('--text-primary', '#333');
-          root.style.setProperty('--success-color', '#28a745');
-          root.style.setProperty('--warning-color', '#f9a825');
-          root.style.setProperty('--switch-active', '#0078d4');
+          applyDefaultTheme();
         }
       });
     }
-    
-    document.body.classList.toggle("dark", enabled);
-    document.documentElement.classList.toggle("dark", enabled);
   }
 
   function initThemeSystem() {
@@ -483,6 +527,8 @@ document.addEventListener("DOMContentLoaded", () => {
       themeBtn.addEventListener("click", () => {
         themePanel.classList.add("open");
         elements.sidePanel.style.zIndex = "999";
+        // FIXED: Reapply theme state when opening theme panel
+        setTimeout(() => reapplyThemeState(), 50);
       });
     }
 
@@ -511,7 +557,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
-    // Preset theme selection
+    // Preset theme selection - FIXED: Handle dark mode conflicts
     document.querySelectorAll(".theme-option").forEach(option => {
       option.addEventListener("click", () => {
         const themeName = option.dataset.theme;
@@ -522,6 +568,10 @@ document.addEventListener("DOMContentLoaded", () => {
             darkToggle.checked = false;
             chrome.storage.local.set({ darkModeEnabled: false });
           }
+          
+          // Remove dark mode classes immediately
+          document.body.classList.remove("dark");
+          document.documentElement.classList.remove("dark");
           
           applyCustomTheme(themes[themeName]);
           chrome.storage.local.set({ 
@@ -534,9 +584,8 @@ document.addEventListener("DOMContentLoaded", () => {
             opt.classList.remove("selected"));
           option.classList.add("selected");
           
-          // Remove dark mode classes
-          document.body.classList.remove("dark");
-          document.documentElement.classList.remove("dark");
+          // Force reapplication to ensure consistency
+          setTimeout(() => reapplyThemeState(), 100);
         }
       });
     });
@@ -561,15 +610,15 @@ document.addEventListener("DOMContentLoaded", () => {
           chrome.storage.local.set({ darkModeEnabled: false });
         }
         
+        // Remove dark mode classes
+        document.body.classList.remove("dark");
+        document.documentElement.classList.remove("dark");
+        
         applyCustomTheme(customTheme);
         chrome.storage.local.set({ 
           customTheme: customTheme,
           currentThemeName: "custom" 
         });
-        
-        // Remove dark mode classes
-        document.body.classList.remove("dark");
-        document.documentElement.classList.remove("dark");
       });
     }
 
@@ -584,7 +633,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
-    // Load saved theme
+    // Load saved theme on initialization
     chrome.storage.local.get(["customTheme", "currentThemeName"], (data) => {
       if (data.customTheme) {
         applyCustomTheme(data.customTheme);
@@ -602,17 +651,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const root = document.documentElement;
     root.style.setProperty('--primary-color', theme.primary);
     root.style.setProperty('--bg-primary', theme.bg);
+    root.style.setProperty('--bg-secondary', theme.bgSecondary || '#ffffff');
     root.style.setProperty('--success-color', theme.success);
     root.style.setProperty('--warning-color', theme.warning);
     root.style.setProperty('--switch-active', theme.primary);
-    
-    // Handle optional text and background colors for dark mode
-    if (theme.textPrimary) {
-      root.style.setProperty('--text-primary', theme.textPrimary);
-    }
-    if (theme.bgSecondary) {
-      root.style.setProperty('--bg-secondary', theme.bgSecondary);
-    }
+    root.style.setProperty('--text-primary', theme.textPrimary || '#333');
+    root.style.setProperty('--text-secondary', theme.textSecondary || '#666');
+    root.style.setProperty('--border-color', theme.borderColor || '#ddd');
+    root.style.setProperty('--switch-bg', theme.switchBg || '#ccc');
   }
 
   function loadCurrentColors() {

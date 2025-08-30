@@ -10,7 +10,7 @@
 - **Themes** – Switch between light, dark, or custom themes
 - **Diagnostic Panel** – View IP, latency, jitter, and provider info
 - **Modular UI** – Pill-style sliders for intuitive control
-- **Support Links** – Quick access to homepage and helpdesk
+- **Support Links** – Quick access to homepage and support forum
 
 ## 🧠 Philosophy
 
