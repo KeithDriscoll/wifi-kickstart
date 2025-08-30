@@ -1,104 +1,126 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Wi‑Fi Kickstart</title>
-  <link rel="stylesheet" href="popup.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wi-Fi Kickstart</title>
+  <link rel="stylesheet" href="popup.css">
 </head>
-<body>
-<div id="menuToggle">☰</div>
+<body class="advanced-mode">
+  <!-- Menu toggle -->
+  <div id="menuToggle">☰</div>
 
-<div id="sidePanel">
-  <div id="closePanel">&lt;</div>
-  <h3>Settings</h3>
-  
-  <!-- Mode Toggle -->
-  <div class="pillToggle">
-    <div class="pillLabel">Advanced Mode</div>
-    <label class="switch">
-      <input type="checkbox" id="toggleAdvancedMode" />
-      <span class="slider"></span>
-    </label>
-  </div>
-  
-  <hr class="settings-divider">
-  
-  <h4>Features</h4>
-  <div class="featureList">
-    <div class="pillToggle advanced-only">
-      <div class="pillLabel">Enable Speed Test</div>
-      <label class="switch">
-        <input type="checkbox" id="toggleSpeedTest" />
-        <span class="slider"></span>
-      </label>
+  <!-- Main content -->
+  <div class="main-content">
+    <h2>Wi‑Fi Kickstart</h2>
+
+    <!-- Core status section -->
+    <div class="core-section">
+      <div class="label simple-visible">Connection Status</div>
+      <button id="checkBtn">Check Connection</button>
+      <div id="status">Status: Checking...</div>
     </div>
 
-    <div class="pillToggle advanced-only">
-      <div class="pillLabel">Show WARP Status</div>
-      <label class="switch">
-        <input type="checkbox" id="toggleWarpCheck" />
-        <span class="slider"></span>
-      </label>
+    <!-- IP Address (always visible) -->
+    <div class="section simple-visible">
+      <div class="label">Network Information</div>
+      <div id="ipAddress">IP: Loading...</div>
     </div>
 
-    <div class="pillToggle advanced-only">
-      <div class="pillLabel">Show Network Score</div>
-      <label class="switch">
-        <input type="checkbox" id="toggleNetworkScore" />
-        <span class="slider"></span>
-      </label>
+    <!-- Advanced metrics -->
+    <div class="section advanced-only">
+      <div class="label">Network Metrics</div>
+      <div id="latency">Latency: Measuring...</div>
+      <div id="jitter">Jitter: Measuring...</div>
     </div>
 
-    <div class="pillToggle">
-      <div class="pillLabel">Enable Dark Mode</div>
-      <label class="switch">
-        <input type="checkbox" id="toggleDarkMode" />
-        <span class="slider"></span>
-      </label>
+    <!-- Speed test section -->
+    <div class="section" id="speedTest">
+      <div class="label advanced-only">Speed Test</div>
+      <button id="runSpeedBtn" class="advanced-only">Run Speed Test</button>
+      <button id="runSpeedBtnSimple" class="speed-button simple-only">Test Speed</button>
+      <div id="speed" class="advanced-only">Speed: Click to test</div>
+      <div id="speedSimple" class="speed-result simple-only">Click to test</div>
+      <div id="lastSpeed" class="advanced-only">Last Speed Test: Never</div>
+    </div>
+
+    <!-- Network score -->
+    <div class="section advanced-only" id="networkScore">
+      <div class="label">Overall Assessment</div>
+      <div id="score">Network Score: Calculating...</div>
+    </div>
+
+    <!-- Cloudflare status -->
+    <div class="section advanced-only">
+      <div class="label">Network Details</div>
+      <div id="warpStatus">WARP: Checking...</div>
+      <div id="asnStatus">Network Provider: Loading...</div>
+    </div>
+
+    <!-- Links section -->
+    <div class="links-section">
+      <a href="https://keithdriscoll.nyc" target="_blank">About this extension</a>
     </div>
   </div>
-</div>
 
-<div class="main-content">
-  <h2>Wi‑Fi Kickstart</h2>
+  <!-- Side panel with FIXED structure -->
+  <div id="sidePanel">
+    <div id="closePanel">✕</div>
+    <div class="panel-content">
+      <h3>Settings</h3>
 
-  <!-- Always visible core section -->
-  <div class="section core-section">
-    <button id="checkBtn">Test Connection</button>
-    <div id="status" class="label">Status: Unknown</div>
-    <div id="ipAddress" class="label simple-visible">IP: Loading...</div>
+      <!-- Interface Mode -->
+      <h4>Interface</h4>
+      <div class="pillToggle mode-toggle">
+        <div class="pillLabel">Advanced Mode</div>
+        <label class="switch">
+          <input type="checkbox" id="toggleAdvancedMode" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <hr class="settings-divider">
+
+      <!-- Features -->
+      <h4>Features</h4>
+      <div class="pillToggle">
+        <div class="pillLabel">Speed Test</div>
+        <label class="switch">
+          <input type="checkbox" id="toggleSpeedTest" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="pillToggle">
+        <div class="pillLabel">WARP Detection</div>
+        <label class="switch">
+          <input type="checkbox" id="toggleWarpCheck" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="pillToggle">
+        <div class="pillLabel">Network Score</div>
+        <label class="switch">
+          <input type="checkbox" id="toggleNetworkScore" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <hr class="settings-divider">
+
+      <!-- Appearance -->
+      <h4>Appearance</h4>
+      <div class="pillToggle">
+        <div class="pillLabel">Dark Mode</div>
+        <label class="switch">
+          <input type="checkbox" id="toggleDarkMode">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
   </div>
 
-  <!-- Simple mode speed test -->
-  <div class="section simple-only">
-    <button id="runSpeedBtnSimple" class="speed-button">Check Speed</button>
-    <div id="speedSimple" class="label speed-result">Speed: Click to test</div>
-  </div>
-
-  <!-- Advanced diagnostics -->
-  <div class="section advanced-only">
-    <div id="lastSpeed" class="label">Last Speed Test: —</div>
-    <div id="latency" class="label">Latency: Measuring...</div>
-    <div id="jitter" class="label">Jitter: Measuring...</div>
-    <div id="speedTest" class="label">Speed: Measuring...</div>
-    <div id="networkScore" class="label">Network Score: —</div>
-    <button id="runSpeedBtn">Run Speed Test</button>
-    <div id="warpStatus" class="label">WARP: Checking...</div>
-    <div id="asnStatus" class="label">Network Provider: Checking...</div>
-  </div>
-
-  <!-- Links (always visible) -->
-  <div class="section links-section">
-    <a href="https://wifi-kickstart.com" target="_blank" rel="noopener noreferrer">
-      🔗 Plugin Homepage
-    </a>
-    &nbsp;|&nbsp;
-    <a href="https://helpdesk.wifi-kickstart.com" target="_blank" rel="noopener noreferrer">
-      🛠️ Report Issue
-    </a>
-  </div>
-</div>
-
-<script src="popup.js"></script>
+  <script src="popup.js"></script>
 </body>
 </html>

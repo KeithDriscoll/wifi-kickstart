@@ -84,8 +84,15 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function applyMode(advanced) {
-    document.body.classList.toggle("advanced-mode", advanced);
-    document.body.classList.toggle("simple-mode", !advanced);
+    // Remove existing classes first to prevent conflicts
+    document.body.classList.remove("advanced-mode", "simple-mode");
+    
+    // Add the appropriate class
+    if (advanced) {
+      document.body.classList.add("advanced-mode");
+    } else {
+      document.body.classList.add("simple-mode");
+    }
     
     // Reset measurements for current mode
     if (advanced && latestLatency === null) {
