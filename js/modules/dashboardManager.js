@@ -162,7 +162,7 @@ export class DashboardManager {
 
   // Open dashboard in new tab
   openDashboard() {
-    chrome.tabs.create({ url: chrome.runtime.getURL('dashboard.html') });
+    chrome.tabs.create({ url: chrome.runtime.getURL('fulltab/dashboard.html') });
   }
 
   // Force data collection for testing

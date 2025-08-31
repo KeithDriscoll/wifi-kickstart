@@ -3,19 +3,25 @@ const FALLBACK_URL = "http://neverssl.com";
 let captiveTabId = null;
 let failureCount = 0;
 
+// Enhanced message listener with debugging
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  console.log('Background received message:', message);
+  
   if (message.action === "checkConnection") {
     checkConnection(true, (result) => {
       sendResponse(result);
     });
-    return true; // keep the message channel open for async response
+    return true;
   }
   
   // Handle dashboard diagnostics request
   if (message.action === "runFullDiagnostics") {
+    console.log('Running full diagnostics...');
     runFullDiagnostics().then(results => {
+      console.log('Diagnostics completed:', results);
       sendResponse({ success: true, data: results });
     }).catch(error => {
+      console.error('Diagnostics failed:', error);
       sendResponse({ success: false, error: error.message });
     });
     return true;
@@ -23,9 +29,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   
   // Handle dashboard speed test request
   if (message.action === "runSpeedTest") {
+    console.log('Running speed test...');
     runSpeedTestOnly().then(results => {
+      console.log('Speed test completed:', results);
       sendResponse({ success: true, data: results });
     }).catch(error => {
+      console.error('Speed test failed:', error);
       sendResponse({ success: false, error: error.message });
     });
     return true;
@@ -34,29 +43,44 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 // Full diagnostics function for dashboard
 async function runFullDiagnostics() {
+  console.log('Starting full diagnostics...');
   const results = {};
   const timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
   
   try {
     // Measure latency
+    console.log('Measuring latency...');
     const latencyResult = await measureLatency();
-    if (latencyResult.success) results.latency = latencyResult.latency;
+    if (latencyResult.success) {
+      results.latency = latencyResult.latency;
+      console.log('Latency:', results.latency);
+    }
     
     // Measure jitter
+    console.log('Measuring jitter...');
     const jitterResult = await measureJitter();
-    if (jitterResult.success) results.jitter = jitterResult.jitter;
+    if (jitterResult.success) {
+      results.jitter = jitterResult.jitter;
+      console.log('Jitter:', results.jitter);
+    }
     
     // Run speed test
+    console.log('Running speed test...');
     const speedResult = await runSpeedTest();
-    if (speedResult.success) results.speed = speedResult.speed;
+    if (speedResult.success) {
+      results.speed = speedResult.speed;
+      console.log('Speed:', results.speed);
+    }
     
     // Calculate network score
     if (results.latency && results.jitter && results.speed) {
       results.score = calculateNetworkScore(results);
+      console.log('Score:', results.score);
     }
     
     // Store results for dashboard
-    storeDashboardData(results, timestamp);
+    console.log('Storing results:', results);
+    await storeDashboardData(results, timestamp);
     
     return results;
   } catch (error) {
@@ -67,6 +91,7 @@ async function runFullDiagnostics() {
 
 // Speed test only function
 async function runSpeedTestOnly() {
+  console.log('Starting speed test only...');
   const timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
   
   try {
@@ -74,7 +99,8 @@ async function runSpeedTestOnly() {
     
     if (speedResult.success) {
       const results = { speed: speedResult.speed };
-      storeDashboardData(results, timestamp);
+      console.log('Speed test result:', results);
+      await storeDashboardData(results, timestamp);
       return results;
     } else {
       throw new Error('Speed test failed');
@@ -157,42 +183,44 @@ function calculateNetworkScore(data) {
 }
 
 // Store dashboard data
-function storeDashboardData(results, timestamp) {
-  chrome.storage.local.get('dashboardData', (data) => {
-    let dashboardData = data.dashboardData || {
-      latencyHistory: [],
-      speedHistory: [],
-      jitterHistory: [],
-      scoreHistory: [],
-      timestamps: []
-    };
-    
-    // Add new data point
-    dashboardData.timestamps.push(timestamp);
-    
-    if (results.latency !== undefined) {
-      dashboardData.latencyHistory.push(results.latency);
-    }
-    if (results.jitter !== undefined) {
-      dashboardData.jitterHistory.push(results.jitter);
-    }
-    if (results.speed !== undefined) {
-      dashboardData.speedHistory.push(results.speed);
-    }
-    if (results.score !== undefined) {
-      dashboardData.scoreHistory.push(results.score);
-    }
-    
-    // Keep only recent entries (max 50)
-    const maxEntries = 50;
-    Object.keys(dashboardData).forEach(key => {
-      if (dashboardData[key].length > maxEntries) {
-        dashboardData[key] = dashboardData[key].slice(-maxEntries);
-      }
+async function storeDashboardData(results, timestamp) {
+  return new Promise((resolve) => {
+    chrome.storage.local.get('dashboardData', (data) => {
+      let dashboardData = data.dashboardData || {
+        latencyHistory: [],
+        speedHistory: [],
+        jitterHistory: [],
+        scoreHistory: [],
+        timestamps: []
+      };
+      
+      console.log('Current dashboard data:', dashboardData);
+      
+      // Add new data point
+      dashboardData.timestamps.push(timestamp);
+      
+      // Fill with null if not provided to keep arrays aligned
+      dashboardData.latencyHistory.push(results.latency || null);
+      dashboardData.jitterHistory.push(results.jitter || null);
+      dashboardData.speedHistory.push(results.speed || null);
+      dashboardData.scoreHistory.push(results.score || null);
+      
+      // Keep only recent entries (max 50)
+      const maxEntries = 50;
+      Object.keys(dashboardData).forEach(key => {
+        if (dashboardData[key].length > maxEntries) {
+          dashboardData[key] = dashboardData[key].slice(-maxEntries);
+        }
+      });
+      
+      console.log('Storing updated dashboard data:', dashboardData);
+      
+      // Save to storage
+      chrome.storage.local.set({ dashboardData: dashboardData }, () => {
+        console.log('Dashboard data saved successfully');
+        resolve();
+      });
     });
-    
-    // Save to storage
-    chrome.storage.local.set({ dashboardData: dashboardData });
   });
 }
 
@@ -277,3 +305,6 @@ chrome.action.onClicked.addListener(() => {
 
 // Auto-check connection every 5 seconds
 setInterval(() => checkConnection(false), 5000);
+
+// Debug: Log when background script loads
+console.log('Wi-Fi Kickstart background script loaded');

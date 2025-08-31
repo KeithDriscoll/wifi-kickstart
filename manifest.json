@@ -14,8 +14,10 @@
     "http://neverssl.com/*",
     "https://ipinfo.io/*",
     "https://download.thinkbroadband.com/*",
-    "https://www.cloudflare.com/*"
+    "https://www.cloudflare.com/*",
+    "https://cdnjs.cloudflare.com/*"
   ],
+ 
   "background": {
     "service_worker": "js/background.js"
   },
@@ -35,7 +37,13 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["dashboard.html", "dashboard.css", "dashboard.js"],
+      "resources": [
+        "fulltab/dashboard.html", 
+        "fulltab/dashboard.css", 
+        "fulltab/dashboard.js",
+        "css/*",
+        "js/*"
+      ],
       "matches": ["<all_urls>"]
     }
   ]

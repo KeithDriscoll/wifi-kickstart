@@ -4,16 +4,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Wi-Fi Kickstart Dashboard</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  <script src="/libs/chart.umd.min.js"></script>
   <link rel="stylesheet" href="dashboard.css">
 </head>
 <body>
-  <button class="toggle-dark" onclick="toggleDarkMode()">🌓</button>
+  <button class="toggle-dark" id="toggleDarkBtn">🌓</button>
 
   <div class="dashboard-container">
     <div class="header">
       <h1>Wi-Fi Kickstart Dashboard</h1>
       <p>Network Diagnostics & Performance Monitoring</p>
+    </div>
+
+    <!-- Debug Info -->
+    <div class="controls" style="background: #fffacd; padding: 10px; border-radius: 8px; margin-bottom: 20px;">
+      <button id="debugStorageBtn" style="background: #ff6b35;">🐛 Debug Storage</button>
+      <button id="createTestDataBtn" style="background: #4ecdc4;">📊 Create Test Data</button>
+      <button id="refreshDataBtn">🔄 Refresh</button>
     </div>
 
     <!-- Real-time Status Cards -->
@@ -38,10 +45,9 @@
 
     <!-- Controls -->
     <div class="controls">
-      <button onclick="runDiagnostics()" id="runDiagnosticsBtn">Run Full Diagnostics</button>
-      <button onclick="runSpeedTest()" id="speedTestBtn">Speed Test Only</button>
-      <button onclick="clearHistory()">Clear History</button>
-      <button onclick="refreshData()">Refresh Data</button>
+      <button id="runDiagnosticsBtn">Run Full Diagnostics</button>
+      <button id="speedTestBtn">Speed Test Only</button>
+      <button id="clearHistoryBtn">Clear History</button>
     </div>
 
     <!-- Network Information -->
