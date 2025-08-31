@@ -1,4 +1,4 @@
-// Dashboard JavaScript - Connected to Extension Data
+// Dashboard JavaScript - Fixed for extension integration
 let dashboardData = {
   latencyHistory: [],
   speedHistory: [],
@@ -15,29 +15,56 @@ document.addEventListener('DOMContentLoaded', function() {
   loadNetworkInfo();
   loadDashboardData();
   
-  // Refresh data every 5 seconds
-  setInterval(loadDashboardData, 5000);
+  // Set up storage listener for real-time updates
+  if (typeof chrome !== 'undefined' && chrome.storage) {
+    chrome.storage.onChanged.addListener((changes, namespace) => {
+      if (namespace === 'local' && changes.dashboardData) {
+        dashboardData = changes.dashboardData.newValue || dashboardData;
+        updateAllCharts();
+        updateStatusCards();
+      }
+    });
+    
+    // Refresh data every 10 seconds
+    setInterval(loadDashboardData, 10000);
+  } else {
+    console.log('Extension context not available - dashboard running in standalone mode');
+  }
+  
+  // Load dark mode preference
+  if (typeof chrome !== 'undefined' && chrome.storage) {
+    chrome.storage.local.get('dashboardDarkMode', (data) => {
+      if (data.dashboardDarkMode) {
+        document.documentElement.classList.add('dark');
+        updateChartColors();
+      }
+    });
+  }
 });
 
 function initializeCharts() {
+  const isDark = document.documentElement.classList.contains('dark');
+  const textColor = isDark ? '#e0d7f5' : '#333';
+  const gridColor = isDark ? '#444' : '#ddd';
+
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
       legend: {
         labels: {
-          color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary')
+          color: textColor
         }
       }
     },
     scales: {
       x: {
-        ticks: { color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary') },
-        grid: { color: getComputedStyle(document.documentElement).getPropertyValue('--border-color') }
+        ticks: { color: textColor },
+        grid: { color: gridColor }
       },
       y: {
-        ticks: { color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary') },
-        grid: { color: getComputedStyle(document.documentElement).getPropertyValue('--border-color') }
+        ticks: { color: textColor },
+        grid: { color: gridColor }
       }
     }
   };
@@ -52,13 +79,15 @@ function initializeCharts() {
         data: [],
         borderColor: '#0078d4',
         backgroundColor: 'rgba(0, 120, 212, 0.1)',
-        tension: 0.3
+        tension: 0.3,
+        fill: false
       }, {
         label: 'Jitter (ms)',
         data: [],
         borderColor: '#f9a825',
         backgroundColor: 'rgba(249, 168, 37, 0.1)',
-        tension: 0.3
+        tension: 0.3,
+        fill: false
       }]
     },
     options: chartOptions
@@ -84,10 +113,11 @@ function initializeCharts() {
   charts.quality = new Chart(document.getElementById('qualityChart'), {
     type: 'doughnut',
     data: {
-      labels: ['Excellent', 'Good', 'Fair', 'Poor'],
+      labels: ['Excellent (80+)', 'Good (60-79)', 'Fair (40-59)', 'Poor (<40)'],
       datasets: [{
         data: [0, 0, 0, 0],
-        backgroundColor: ['#28a745', '#17a2b8', '#f9a825', '#d93025']
+        backgroundColor: ['#28a745', '#17a2b8', '#f9a825', '#d93025'],
+        borderWidth: 0
       }]
     },
     options: {
@@ -97,7 +127,8 @@ function initializeCharts() {
         legend: {
           position: 'bottom',
           labels: {
-            color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary')
+            color: textColor,
+            padding: 15
           }
         }
       }
@@ -130,38 +161,31 @@ function initializeCharts() {
 
 // Load dashboard data from Chrome storage
 function loadDashboardData() {
-  chrome.storage.local.get('dashboardData', (data) => {
-    if (data.dashboardData) {
-      dashboardData = data.dashboardData;
-      updateAllCharts();
-      updateStatusCards();
-    } else {
-      // If no data exists, generate some sample data
-      generateSampleData();
-    }
-  });
+  if (typeof chrome !== 'undefined' && chrome.storage) {
+    chrome.storage.local.get('dashboardData', (data) => {
+      if (data.dashboardData && Object.keys(data.dashboardData).length > 0) {
+        dashboardData = data.dashboardData;
+        updateAllCharts();
+        updateStatusCards();
+      } else {
+        // Show empty state message
+        updateEmptyState();
+      }
+    });
+  } else {
+    updateEmptyState();
+  }
 }
 
-function generateSampleData() {
-  // Generate sample data only if no real data exists
-  const now = new Date();
-  for (let i = 19; i >= 0; i--) {
-    const timestamp = new Date(now.getTime() - i * 60000);
-    const timeLabel = timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-    
-    dashboardData.timestamps.push(timeLabel);
-    dashboardData.latencyHistory.push(Math.floor(Math.random() * 100) + 20);
-    dashboardData.jitterHistory.push(Math.floor(Math.random() * 50) + 5);
-    dashboardData.speedHistory.push(Math.floor(Math.random() * 80) + 10);
-    dashboardData.scoreHistory.push(Math.floor(Math.random() * 40) + 60);
-  }
-  
-  updateAllCharts();
-  updateStatusCards();
+function updateEmptyState() {
+  document.getElementById('currentLatency').textContent = 'No Data';
+  document.getElementById('currentSpeed').textContent = 'No Data';
+  document.getElementById('currentJitter').textContent = 'No Data';
+  document.getElementById('networkScore').textContent = 'No Data';
 }
 
 function updateAllCharts() {
-  if (!charts.performance) return;
+  if (!charts.performance || !dashboardData.timestamps.length) return;
 
   // Update performance chart
   charts.performance.data.labels = dashboardData.timestamps.slice(-20);
@@ -176,13 +200,15 @@ function updateAllCharts() {
 
   // Update quality distribution
   const scores = dashboardData.scoreHistory;
-  const excellent = scores.filter(s => s >= 80).length;
-  const good = scores.filter(s => s >= 60 && s < 80).length;
-  const fair = scores.filter(s => s >= 40 && s < 60).length;
-  const poor = scores.filter(s => s < 40).length;
-  
-  charts.quality.data.datasets[0].data = [excellent, good, fair, poor];
-  charts.quality.update('none');
+  if (scores.length > 0) {
+    const excellent = scores.filter(s => s >= 80).length;
+    const good = scores.filter(s => s >= 60 && s < 80).length;
+    const fair = scores.filter(s => s >= 40 && s < 60).length;
+    const poor = scores.filter(s => s < 40).length;
+    
+    charts.quality.data.datasets[0].data = [excellent, good, fair, poor];
+    charts.quality.update('none');
+  }
 
   // Update score chart
   charts.score.data.labels = dashboardData.timestamps.slice(-20);
@@ -240,19 +266,35 @@ async function runDiagnostics() {
   btn.textContent = 'Running Diagnostics...';
 
   try {
-    // Send message to extension background to run diagnostics
-    chrome.runtime.sendMessage({ action: 'runFullDiagnostics' }, (response) => {
-      if (response && response.success) {
-        // Data will be updated via storage listener
-        loadDashboardData();
-      }
-      btn.textContent = 'Run Full Diagnostics';
-      btn.disabled = false;
-    });
+    if (typeof chrome !== 'undefined' && chrome.runtime) {
+      // Send message to extension background to run diagnostics
+      chrome.runtime.sendMessage({ action: 'runFullDiagnostics' }, (response) => {
+        if (chrome.runtime.lastError) {
+          console.error('Extension communication error:', chrome.runtime.lastError);
+          btn.textContent = 'Extension Not Available';
+          setTimeout(() => {
+            btn.textContent = 'Run Full Diagnostics';
+            btn.disabled = false;
+          }, 2000);
+          return;
+        }
+        
+        if (response && response.success) {
+          loadDashboardData();
+        }
+        btn.textContent = 'Run Full Diagnostics';
+        btn.disabled = false;
+      });
+    } else {
+      throw new Error('Extension context not available');
+    }
   } catch (error) {
     console.error('Diagnostics failed:', error);
-    btn.textContent = 'Try Again';
-    btn.disabled = false;
+    btn.textContent = 'Extension Required';
+    setTimeout(() => {
+      btn.textContent = 'Run Full Diagnostics';
+      btn.disabled = false;
+    }, 2000);
   }
 }
 
@@ -262,18 +304,34 @@ async function runSpeedTest() {
   btn.textContent = 'Testing Speed...';
 
   try {
-    // Send message to extension to run speed test
-    chrome.runtime.sendMessage({ action: 'runSpeedTest' }, (response) => {
-      if (response && response.success) {
-        loadDashboardData();
-      }
-      btn.textContent = 'Speed Test Only';
-      btn.disabled = false;
-    });
+    if (typeof chrome !== 'undefined' && chrome.runtime) {
+      chrome.runtime.sendMessage({ action: 'runSpeedTest' }, (response) => {
+        if (chrome.runtime.lastError) {
+          console.error('Extension communication error:', chrome.runtime.lastError);
+          btn.textContent = 'Extension Not Available';
+          setTimeout(() => {
+            btn.textContent = 'Speed Test Only';
+            btn.disabled = false;
+          }, 2000);
+          return;
+        }
+        
+        if (response && response.success) {
+          loadDashboardData();
+        }
+        btn.textContent = 'Speed Test Only';
+        btn.disabled = false;
+      });
+    } else {
+      throw new Error('Extension context not available');
+    }
   } catch (error) {
     console.error('Speed test failed:', error);
-    btn.textContent = 'Try Again';
-    btn.disabled = false;
+    btn.textContent = 'Extension Required';
+    setTimeout(() => {
+      btn.textContent = 'Speed Test Only';
+      btn.disabled = false;
+    }, 2000);
   }
 }
 
@@ -285,17 +343,35 @@ function clearHistory() {
     scoreHistory: [],
     timestamps: []
   };
-  chrome.storage.local.set({ dashboardData: dashboardData });
+  
+  if (typeof chrome !== 'undefined' && chrome.storage) {
+    chrome.storage.local.set({ dashboardData: dashboardData });
+  }
+  
   updateAllCharts();
   updateStatusCards();
 }
 
+function refreshData() {
+  loadDashboardData();
+  loadNetworkInfo();
+}
+
 function toggleDarkMode() {
   document.documentElement.classList.toggle('dark');
+  updateChartColors();
   
-  // Update chart colors
-  const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-primary');
-  const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--border-color');
+  // Save dark mode preference
+  if (typeof chrome !== 'undefined' && chrome.storage) {
+    const isDark = document.documentElement.classList.contains('dark');
+    chrome.storage.local.set({ dashboardDarkMode: isDark });
+  }
+}
+
+function updateChartColors() {
+  const isDark = document.documentElement.classList.contains('dark');
+  const textColor = isDark ? '#e0d7f5' : '#333';
+  const gridColor = isDark ? '#444' : '#ddd';
   
   Object.values(charts).forEach(chart => {
     if (chart.options.plugins?.legend?.labels) {
@@ -315,7 +391,7 @@ function toggleDarkMode() {
 
 async function loadNetworkInfo() {
   try {
-    // Get network info from extension storage or API calls
+    // Get network info from API
     const response = await fetch('https://ipinfo.io/json');
     const data = await response.json();
     
@@ -330,8 +406,9 @@ async function loadNetworkInfo() {
       const warpMatch = warpText.match(/warp=(\w+)/);
       const isWarpActive = warpMatch && warpMatch[1] === 'on';
       
-      document.getElementById('warpStatus').textContent = isWarpActive ? 'Active 🔒' : 'Inactive';
-      document.getElementById('warpStatus').style.color = isWarpActive ? 'var(--success-color)' : 'var(--text-secondary)';
+      const warpElement = document.getElementById('warpStatus');
+      warpElement.textContent = isWarpActive ? 'Active 🔒' : 'Inactive';
+      warpElement.style.color = isWarpActive ? 'var(--success-color)' : 'var(--text-secondary)';
     } catch (e) {
       document.getElementById('warpStatus').textContent = 'Unknown';
     }

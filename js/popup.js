@@ -1,4 +1,4 @@
-// Main application entry point
+// Main application entry point - Fixed for dashboard integration
 import { ConnectionManager } from './modules/connection.js';
 import { NetworkInfoManager } from './modules/networkInfo.js';
 import { UIManager } from './modules/uiManager.js';
@@ -40,7 +40,7 @@ class WiFiKickstartApp {
       });
     }
 
-    // Speed test buttons
+    // Speed test buttons - FIXED to store dashboard data
     if (this.uiManager.elements.runSpeedBtn) {
       this.uiManager.elements.runSpeedBtn.addEventListener("click", () => {
         this.runSpeedTest(false);
@@ -68,9 +68,9 @@ class WiFiKickstartApp {
       this.uiManager.isAdvancedMode = event.detail.isAdvancedMode;
       this.uiManager.setAdvancedMode(event.detail.isAdvancedMode);
       
-      if (event.detail.isAdvancedMode && this.connectionManager.latestLatency === null) {
-        this.measureLatency();
-        this.measureJitter();
+      // FIXED: Collect data when switching to advanced mode
+      if (event.detail.isAdvancedMode) {
+        this.runFullDiagnostics();
       }
     });
 
@@ -90,6 +90,11 @@ class WiFiKickstartApp {
     this.requestConnectionCheck();
     this.fetchIPAddress();
     this.detectCloudflareUsage();
+    
+    // FIXED: Run initial diagnostics to populate dashboard
+    if (isAdvancedMode) {
+      setTimeout(() => this.runFullDiagnostics(), 1000);
+    }
   }
 
   async requestConnectionCheck() {
@@ -99,10 +104,9 @@ class WiFiKickstartApp {
       const status = isOnline ? "Online ✅" : "Offline ❌";
       this.uiManager.updateStatus(`Status: ${status}`, isOnline);
       
-      if (isOnline && this.uiManager.isAdvancedMode) {
-        this.measureLatency();
-        this.measureJitter();
-        this.runSpeedTest(false);
+      // FIXED: Always collect data when checking connection
+      if (isOnline) {
+        this.runFullDiagnostics();
       }
     } catch (error) {
       this.uiManager.updateStatus("Status: Error", false);
@@ -115,6 +119,44 @@ class WiFiKickstartApp {
       this.uiManager.updateIPAddress(ipData);
     } catch (error) {
       this.uiManager.updateIPAddress({ success: false });
+    }
+  }
+
+  // FIXED: Combined diagnostics method that stores dashboard data
+  async runFullDiagnostics() {
+    if (!this.uiManager.isAdvancedMode) return;
+    
+    try {
+      console.log('Running full diagnostics from popup...');
+      
+      // Measure latency
+      const latencyData = await this.connectionManager.measureLatency();
+      this.uiManager.updateLatency(latencyData);
+      
+      // Measure jitter
+      const jitterData = await this.connectionManager.measureJitter();
+      this.uiManager.updateJitter(jitterData);
+      
+      // Run speed test
+      const speedData = await this.connectionManager.runSpeedTest();
+      this.uiManager.updateSpeedTest(speedData, false);
+      
+      // Calculate and update score
+      const score = this.connectionManager.calculateNetworkScore();
+      this.uiManager.updateNetworkScore(score);
+      
+      // CRITICAL FIX: Store all data together for dashboard
+      const dashboardResults = {};
+      if (latencyData.success) dashboardResults.latency = latencyData.latency;
+      if (jitterData.success) dashboardResults.jitter = jitterData.jitter;
+      if (speedData.success) dashboardResults.speed = speedData.speed;
+      if (score !== null) dashboardResults.score = score;
+      
+      this.dashboardManager.addDataPoint(dashboardResults);
+      console.log('Dashboard data stored:', dashboardResults);
+      
+    } catch (error) {
+      console.error('Full diagnostics failed:', error);
     }
   }
 
@@ -160,10 +202,22 @@ class WiFiKickstartApp {
       this.uiManager.updateSpeedTest(speedData, isSimpleMode);
       this.updateNetworkScore();
       
-      // Store for dashboard
-      if (speedData.success) {
-        this.dashboardManager.addDataPoint({ speed: speedData.speed });
+      // FIXED: Store complete data point for dashboard
+      const dashboardResults = { speed: speedData.speed };
+      
+      // If in advanced mode, include current metrics
+      if (this.uiManager.isAdvancedMode) {
+        const metrics = this.connectionManager.getMetrics();
+        if (metrics.latency) dashboardResults.latency = metrics.latency;
+        if (metrics.jitter) dashboardResults.jitter = metrics.jitter;
+        
+        const score = this.connectionManager.calculateNetworkScore();
+        if (score !== null) dashboardResults.score = score;
       }
+      
+      this.dashboardManager.addDataPoint(dashboardResults);
+      console.log('Speed test data stored for dashboard:', dashboardResults);
+      
     } catch (error) {
       this.uiManager.updateSpeedTest({ success: false }, isSimpleMode);
     }
@@ -175,9 +229,17 @@ class WiFiKickstartApp {
     const score = this.connectionManager.calculateNetworkScore();
     this.uiManager.updateNetworkScore(score);
     
-    // Store for dashboard
+    // Store for dashboard only if we have a complete score
     if (score !== null) {
-      this.dashboardManager.addDataPoint({ score: score });
+      const metrics = this.connectionManager.getMetrics();
+      const dashboardResults = { score: score };
+      
+      // Include current metrics if available
+      if (metrics.latency) dashboardResults.latency = metrics.latency;
+      if (metrics.jitter) dashboardResults.jitter = metrics.jitter;
+      if (metrics.speed) dashboardResults.speed = metrics.speed;
+      
+      this.dashboardManager.addDataPoint(dashboardResults);
     }
   }
 

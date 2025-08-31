@@ -1,4 +1,4 @@
-// Dashboard data management and integration
+// Dashboard data management and integration - Fixed
 export class DashboardManager {
   constructor(connectionManager, networkInfoManager) {
     this.connectionManager = connectionManager;
@@ -11,26 +11,33 @@ export class DashboardManager {
       timestamps: []
     };
     this.maxEntries = 50;
+    this.loadExistingData();
   }
 
-  // Store data point for dashboard
+  // Load existing dashboard data on initialization
+  async loadExistingData() {
+    return new Promise((resolve) => {
+      chrome.storage.local.get('dashboardData', (data) => {
+        if (data.dashboardData) {
+          this.dashboardData = data.dashboardData;
+        }
+        resolve();
+      });
+    });
+  }
+
+  // Store data point for dashboard - FIXED to actually save data
   addDataPoint(data) {
     const timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
     
+    // Always add timestamp
     this.dashboardData.timestamps.push(timestamp);
     
-    if (data.latency !== undefined) {
-      this.dashboardData.latencyHistory.push(data.latency);
-    }
-    if (data.jitter !== undefined) {
-      this.dashboardData.jitterHistory.push(data.jitter);
-    }
-    if (data.speed !== undefined) {
-      this.dashboardData.speedHistory.push(data.speed);
-    }
-    if (data.score !== undefined) {
-      this.dashboardData.scoreHistory.push(data.score);
-    }
+    // Add data points, filling with null if not provided
+    this.dashboardData.latencyHistory.push(data.latency || null);
+    this.dashboardData.jitterHistory.push(data.jitter || null);
+    this.dashboardData.speedHistory.push(data.speed || null);
+    this.dashboardData.scoreHistory.push(data.score || null);
 
     // Keep only recent entries
     Object.keys(this.dashboardData).forEach(key => {
@@ -39,8 +46,9 @@ export class DashboardManager {
       }
     });
 
-    // Store in Chrome storage for dashboard access
+    // CRITICAL: Actually store in Chrome storage for dashboard access
     chrome.storage.local.set({ dashboardData: this.dashboardData });
+    console.log('Dashboard data stored:', this.dashboardData);
   }
 
   // Get current dashboard data
@@ -67,29 +75,67 @@ export class DashboardManager {
     };
   }
 
-  // Run diagnostics and store results
+  // Run diagnostics and store results - FIXED to properly collect and store data
   async runFullDiagnostics() {
     const results = {};
     
-    // Run all tests
-    const latencyResult = await this.connectionManager.measureLatency();
-    if (latencyResult.success) results.latency = latencyResult.latency;
-    
-    const jitterResult = await this.connectionManager.measureJitter();
-    if (jitterResult.success) results.jitter = jitterResult.jitter;
-    
-    const speedResult = await this.connectionManager.runSpeedTest();
-    if (speedResult.success) results.speed = speedResult.speed;
-    
-    // Calculate score
-    if (results.latency && results.jitter && results.speed) {
-      results.score = this.calculateNetworkScore(results);
+    try {
+      // Run all tests sequentially
+      console.log('Starting full diagnostics...');
+      
+      const latencyResult = await this.connectionManager.measureLatency();
+      if (latencyResult.success) {
+        results.latency = latencyResult.latency;
+        console.log('Latency measured:', results.latency);
+      }
+      
+      const jitterResult = await this.connectionManager.measureJitter();
+      if (jitterResult.success) {
+        results.jitter = jitterResult.jitter;
+        console.log('Jitter measured:', results.jitter);
+      }
+      
+      const speedResult = await this.connectionManager.runSpeedTest();
+      if (speedResult.success) {
+        results.speed = speedResult.speed;
+        console.log('Speed measured:', results.speed);
+      }
+      
+      // Calculate score if we have all data
+      if (results.latency && results.jitter && results.speed) {
+        results.score = this.calculateNetworkScore(results);
+        console.log('Score calculated:', results.score);
+      }
+      
+      // Store the complete results
+      this.addDataPoint(results);
+      console.log('Full diagnostics completed and stored');
+      
+      return results;
+    } catch (error) {
+      console.error('Diagnostics error:', error);
+      throw error;
     }
-    
-    // Store the results
-    this.addDataPoint(results);
-    
-    return results;
+  }
+
+  // Speed test only
+  async runSpeedTestOnly() {
+    try {
+      console.log('Starting speed test...');
+      const speedResult = await this.connectionManager.runSpeedTest();
+      
+      if (speedResult.success) {
+        const results = { speed: speedResult.speed };
+        this.addDataPoint(results);
+        console.log('Speed test completed and stored:', results.speed);
+        return results;
+      } else {
+        throw new Error('Speed test failed');
+      }
+    } catch (error) {
+      console.error('Speed test error:', error);
+      throw error;
+    }
   }
 
   calculateNetworkScore(data) {
@@ -111,10 +157,18 @@ export class DashboardManager {
       timestamps: []
     };
     chrome.storage.local.set({ dashboardData: this.dashboardData });
+    console.log('Dashboard history cleared');
   }
 
   // Open dashboard in new tab
   openDashboard() {
     chrome.tabs.create({ url: chrome.runtime.getURL('dashboard.html') });
+  }
+
+  // Force data collection for testing
+  async collectTestData() {
+    console.log('Collecting test data...');
+    const results = await this.runFullDiagnostics();
+    return results;
   }
 }
