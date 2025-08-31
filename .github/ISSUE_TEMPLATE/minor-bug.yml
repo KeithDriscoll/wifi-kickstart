@@ -1,0 +1,76 @@
+name: 🐛 Minor Bug Report
+description: Log a low-priority issue with diagnostic clarity and emotional polish.
+title: "[Bug] "
+labels: [minor, diagnostic]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🧠 Thanks for logging a bug!
+        Use this form to track minor issues—diagnostic quirks, UI polish, or emotional tone mismatches.
+
+  - type: input
+    id: summary
+    attributes:
+      label: Bug Summary
+      description: Brief description of the issue.
+      placeholder: "Wi-Fi status icon misaligned on popup"
+
+  - type: checkboxes
+    id: location
+    attributes:
+      label: Location
+      description: Where does this bug occur?
+      options:
+        - label: Popup UI
+        - label: Background script
+        - label: Diagnostics module
+        - label: Branding / Theming
+        - label: Other
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: What actions lead to the bug?
+      placeholder: |
+        1. Open popup
+        2. Click "Run Diagnostics"
+        3. Observe icon misalignment
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What should have happened?
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+
+  - type: checkboxes
+    id: polish
+    attributes:
+      label: NYC Polish Level
+      description: What kind of issue is this?
+      options:
+        - label: Cosmetic (visual glitch, spacing, theming)
+        - label: Diagnostic clarity (misleading output, suppressed state)
+        - label: UX friction (confusing flow, unclear feedback)
+        - label: Emotional resonance (tone mismatch, branding hiccup)
+
+  - type: textarea
+    id: fix
+    attributes:
+      label: Suggested Fix or Workaround
+      description: Optional—any ideas or quick patches?
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Any context, related issues, or why this matters to future clarity.
