@@ -1,0 +1,107 @@
+/* CSS Variables */
+:root {
+  --bg-primary: #f9f9f9;
+  --bg-secondary: #ffffff;
+  --text-primary: #333;
+  --text-secondary: #666;
+  --primary-color: #0078d4;
+  --border-color: #ddd;
+  --success-color: #28a745;
+  --warning-color: #f9a825;
+  --error-color: #d93025;
+  --switch-bg: #ccc;
+  --switch-active: #0078d4;
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Dark mode variables */
+html.dark {
+  --bg-primary: #1a0e2a !important;
+  --bg-secondary: #2b1850 !important;
+  --text-primary: #e0d7f5 !important;
+  --text-secondary: #aaa !important;
+  --primary-color: #b48cff !important;
+  --border-color: #444 !important;
+  --switch-bg: #555 !important;
+  --switch-active: #6a3fc9 !important;
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Base layout */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 320px;
+  height: 680px !important;
+  min-height: 680px !important;
+  max-height: 680px !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  box-sizing: border-box;
+  overflow: hidden !important;
+  position: relative;
+}
+
+/* Main container */
+.main-content {
+  padding: 16px;
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  overflow-y: auto;
+}
+
+/* Typography */
+h2 {
+  color: var(--text-primary);
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.label {
+  font-size: 12px;
+  margin-bottom: 4px;
+  color: var(--text-secondary);
+}
+
+#status {
+  margin-top: 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+/* Sections */
+.section {
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-color);
+  width: 100%;
+}
+
+.core-section {
+  border-top: none;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.links-section {
+  margin-top: 20px;
+}
+
+/* Links */
+a {
+  font-size: 12px;
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}

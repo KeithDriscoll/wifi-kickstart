@@ -1,0 +1,153 @@
+/* Theme System Styles */
+.theme-selector {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.theme-button, .custom-colors-button {
+  width: 100% !important;
+  max-width: 200px !important;
+  padding: 10px 12px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  display: block;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.theme-button:hover, .custom-colors-button:hover {
+  background-color: #005ea2;
+}
+
+/* Preset Themes */
+.preset-themes {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.theme-option {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: var(--bg-primary) !important;
+}
+
+.theme-option:hover {
+  border-color: var(--primary-color);
+  background: var(--bg-secondary) !important;
+}
+
+.theme-option.selected {
+  border-color: var(--primary-color);
+  background: var(--bg-secondary) !important;
+}
+
+.theme-preview {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  margin-right: 12px;
+  border: 1px solid var(--border-color);
+}
+
+/* Theme Preview Colors */
+.default-theme { background: linear-gradient(45deg, #0078d4, #005ea2) !important; }
+.ocean-theme { background: linear-gradient(45deg, #006d75, #0891b2) !important; }
+.forest-theme { background: linear-gradient(45deg, #16a34a, #15803d) !important; }
+.sunset-theme { background: linear-gradient(45deg, #ea580c, #dc2626) !important; }
+.purple-theme { background: linear-gradient(45deg, #9333ea, #7c3aed) !important; }
+
+/* Color Pickers */
+.color-picker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding: 8px 0;
+}
+
+.color-picker label {
+  font-size: 14px;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.color-picker input[type="color"] {
+  width: 40px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background: none;
+}
+
+/* Custom Theme Actions */
+.custom-actions {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.apply-button {
+  background-color: var(--success-color);
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: block;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 200px;
+}
+
+.apply-button:hover {
+  background-color: #1e7e34;
+}
+
+.reset-button {
+  background-color: var(--error-color);
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: block;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 200px;
+}
+
+.reset-button:hover {
+  background-color: #b71c1c;
+}
+
+/* Dark mode theme overrides */
+html.dark .theme-button, 
+html.dark .custom-colors-button {
+  background-color: #6a3fc9 !important;
+}
+
+html.dark .theme-button:hover, 
+html.dark .custom-colors-button:hover {
+  background-color: #512a9e !important;
+}
