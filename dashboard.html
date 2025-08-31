@@ -1,0 +1,95 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wi-Fi Kickstart Dashboard</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+  <button class="toggle-dark" onclick="toggleDarkMode()">🌓</button>
+
+  <div class="dashboard-container">
+    <div class="header">
+      <h1>Wi-Fi Kickstart Dashboard</h1>
+      <p>Network Diagnostics & Performance Monitoring</p>
+    </div>
+
+    <!-- Real-time Status Cards -->
+    <div class="status-bar">
+      <div class="status-card">
+        <div class="status-value" id="currentLatency">--</div>
+        <div class="status-label">Latency (ms)</div>
+      </div>
+      <div class="status-card">
+        <div class="status-value" id="currentSpeed">--</div>
+        <div class="status-label">Speed (Mbps)</div>
+      </div>
+      <div class="status-card">
+        <div class="status-value" id="currentJitter">--</div>
+        <div class="status-label">Jitter (ms)</div>
+      </div>
+      <div class="status-card">
+        <div class="status-value" id="networkScore">--</div>
+        <div class="status-label">Network Score</div>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <button onclick="runDiagnostics()" id="runDiagnosticsBtn">Run Full Diagnostics</button>
+      <button onclick="runSpeedTest()" id="speedTestBtn">Speed Test Only</button>
+      <button onclick="clearHistory()">Clear History</button>
+    </div>
+
+    <!-- Network Information -->
+    <div class="network-info">
+      <h3>Network Information</h3>
+      <div class="info-grid">
+        <div class="info-item">
+          <div class="info-label">IP Address</div>
+          <div class="info-value" id="ipAddress">Loading...</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Location</div>
+          <div class="info-value" id="location">Loading...</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Provider</div>
+          <div class="info-value" id="provider">Loading...</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">WARP Status</div>
+          <div class="info-value" id="warpStatus">Checking...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts-grid">
+      <div class="chart-container">
+        <div class="chart-title">Network Performance Over Time</div>
+        <canvas id="performanceChart" class="chart-canvas"></canvas>
+      </div>
+      
+      <div class="chart-container">
+        <div class="chart-title">Speed Test History</div>
+        <canvas id="speedChart" class="chart-canvas"></canvas>
+      </div>
+      
+      <div class="chart-container">
+        <div class="chart-title">Connection Quality Distribution</div>
+        <canvas id="qualityChart" class="chart-canvas"></canvas>
+      </div>
+      
+      <div class="chart-container">
+        <div class="chart-title">Network Score Trend</div>
+        <canvas id="scoreChart" class="chart-canvas"></canvas>
+      </div>
+    </div>
+  </div>
+<script src="dashboard.js"></script>
+</body>
+</html>

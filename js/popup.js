@@ -4,6 +4,7 @@ import { NetworkInfoManager } from './modules/networkInfo.js';
 import { UIManager } from './modules/uiManager.js';
 import { ThemeManager } from './modules/themeManager.js';
 import { SettingsManager } from './modules/settingsManager.js';
+import { DashboardManager } from './modules/dashboardManager.js';
 
 class WiFiKickstartApp {
   constructor() {
@@ -12,6 +13,7 @@ class WiFiKickstartApp {
     this.uiManager = new UIManager();
     this.themeManager = new ThemeManager();
     this.settingsManager = new SettingsManager();
+    this.dashboardManager = new DashboardManager(this.connectionManager, this.networkInfoManager);
   }
 
   async initialize() {
@@ -48,6 +50,14 @@ class WiFiKickstartApp {
     if (this.uiManager.elements.runSpeedBtnSimple) {
       this.uiManager.elements.runSpeedBtnSimple.addEventListener("click", () => {
         this.runSpeedTest(true);
+      });
+    }
+
+    // Dashboard button
+    const dashboardBtn = document.getElementById("dashboardBtn");
+    if (dashboardBtn) {
+      dashboardBtn.addEventListener("click", () => {
+        this.dashboardManager.openDashboard();
       });
     }
   }
@@ -115,6 +125,11 @@ class WiFiKickstartApp {
       const latencyData = await this.connectionManager.measureLatency();
       this.uiManager.updateLatency(latencyData);
       this.updateNetworkScore();
+      
+      // Store for dashboard
+      if (latencyData.success) {
+        this.dashboardManager.addDataPoint({ latency: latencyData.latency });
+      }
     } catch (error) {
       this.uiManager.updateLatency({ success: false });
     }
@@ -127,6 +142,11 @@ class WiFiKickstartApp {
       const jitterData = await this.connectionManager.measureJitter();
       this.uiManager.updateJitter(jitterData);
       this.updateNetworkScore();
+      
+      // Store for dashboard
+      if (jitterData.success) {
+        this.dashboardManager.addDataPoint({ jitter: jitterData.jitter });
+      }
     } catch (error) {
       this.uiManager.updateJitter({ success: false });
     }
@@ -139,6 +159,11 @@ class WiFiKickstartApp {
       const speedData = await this.connectionManager.runSpeedTest();
       this.uiManager.updateSpeedTest(speedData, isSimpleMode);
       this.updateNetworkScore();
+      
+      // Store for dashboard
+      if (speedData.success) {
+        this.dashboardManager.addDataPoint({ speed: speedData.speed });
+      }
     } catch (error) {
       this.uiManager.updateSpeedTest({ success: false }, isSimpleMode);
     }
@@ -149,6 +174,11 @@ class WiFiKickstartApp {
     
     const score = this.connectionManager.calculateNetworkScore();
     this.uiManager.updateNetworkScore(score);
+    
+    // Store for dashboard
+    if (score !== null) {
+      this.dashboardManager.addDataPoint({ score: score });
+    }
   }
 
   async detectCloudflareUsage() {
