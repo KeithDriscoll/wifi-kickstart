@@ -3,7 +3,7 @@ const FALLBACK_URL = "http://neverssl.com";
 let captiveTabId = null;
 let failureCount = 0;
 
-// Enhanced message listener with debugging
+// Enhanced message listener
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log('Background received message:', message);
   
@@ -82,6 +82,9 @@ async function runFullDiagnostics() {
     console.log('Storing results:', results);
     await storeDashboardData(results, timestamp);
     
+    // Store provider info
+    await storeProviderInfo();
+    
     return results;
   } catch (error) {
     console.error('Full diagnostics failed:', error);
@@ -101,6 +104,7 @@ async function runSpeedTestOnly() {
       const results = { speed: speedResult.speed };
       console.log('Speed test result:', results);
       await storeDashboardData(results, timestamp);
+      await storeProviderInfo();
       return results;
     } else {
       throw new Error('Speed test failed');
@@ -108,6 +112,28 @@ async function runSpeedTestOnly() {
   } catch (error) {
     console.error('Speed test failed:', error);
     throw error;
+  }
+}
+
+// Store provider information for charts
+async function storeProviderInfo() {
+  try {
+    const response = await fetch("https://ipinfo.io/json");
+    const data = await response.json();
+    
+    if (data.org) {
+      const provider = data.org.split(" ").slice(1).join(" ");
+      
+      chrome.storage.local.get('providerHistory', (storage) => {
+        const providers = storage.providerHistory || [];
+        providers.push(provider);
+        // Keep only recent 50 entries
+        const recentProviders = providers.slice(-50);
+        chrome.storage.local.set({ providerHistory: recentProviders });
+      });
+    }
+  } catch (error) {
+    console.log('Failed to store provider info:', error);
   }
 }
 

@@ -16,13 +16,6 @@
       <p>Network Diagnostics & Performance Monitoring</p>
     </div>
 
-    <!-- Debug Info -->
-    <div class="controls" style="background: #fffacd; padding: 10px; border-radius: 8px; margin-bottom: 20px;">
-      <button id="debugStorageBtn" style="background: #ff6b35;">🐛 Debug Storage</button>
-      <button id="createTestDataBtn" style="background: #4ecdc4;">📊 Create Test Data</button>
-      <button id="refreshDataBtn">🔄 Refresh</button>
-    </div>
-
     <!-- Real-time Status Cards -->
     <div class="status-bar">
       <div class="status-card">
@@ -86,6 +79,16 @@
       </div>
       
       <div class="chart-container">
+        <div class="chart-title">Network Providers</div>
+        <canvas id="providerChart" class="chart-canvas"></canvas>
+      </div>
+      
+      <div class="chart-container">
+        <div class="chart-title">Performance Distribution</div>
+        <canvas id="performanceDistChart" class="chart-canvas"></canvas>
+      </div>
+      
+      <div class="chart-container">
         <div class="chart-title">Connection Quality Distribution</div>
         <canvas id="qualityChart" class="chart-canvas"></canvas>
       </div>
@@ -94,6 +97,11 @@
         <div class="chart-title">Network Score Trend</div>
         <canvas id="scoreChart" class="chart-canvas"></canvas>
       </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <span>Made with ❤️ in NYC</span>
     </div>
   </div>
 

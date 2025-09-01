@@ -1,4 +1,4 @@
-// Dashboard data management and integration - Fixed
+// Dashboard data management and integration - Fixed with tab switching
 export class DashboardManager {
   constructor(connectionManager, networkInfoManager) {
     this.connectionManager = connectionManager;
@@ -26,7 +26,7 @@ export class DashboardManager {
     });
   }
 
-  // Store data point for dashboard - FIXED to actually save data
+  // Store data point for dashboard
   addDataPoint(data) {
     const timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
     
@@ -46,7 +46,7 @@ export class DashboardManager {
       }
     });
 
-    // CRITICAL: Actually store in Chrome storage for dashboard access
+    // Store in Chrome storage for dashboard access
     chrome.storage.local.set({ dashboardData: this.dashboardData });
     console.log('Dashboard data stored:', this.dashboardData);
   }
@@ -75,12 +75,11 @@ export class DashboardManager {
     };
   }
 
-  // Run diagnostics and store results - FIXED to properly collect and store data
+  // Run diagnostics and store results
   async runFullDiagnostics() {
     const results = {};
     
     try {
-      // Run all tests sequentially
       console.log('Starting full diagnostics...');
       
       const latencyResult = await this.connectionManager.measureLatency();
@@ -156,13 +155,31 @@ export class DashboardManager {
       scoreHistory: [],
       timestamps: []
     };
-    chrome.storage.local.set({ dashboardData: this.dashboardData });
+    chrome.storage.local.set({ 
+      dashboardData: this.dashboardData,
+      providerHistory: []
+    });
     console.log('Dashboard history cleared');
   }
 
-  // Open dashboard in new tab
+  // Open dashboard in new tab or switch to existing
   openDashboard() {
-    chrome.tabs.create({ url: chrome.runtime.getURL('fulltab/dashboard.html') });
+    const dashboardUrl = chrome.runtime.getURL('fulltab/dashboard.html');
+    
+    // Check if dashboard is already open
+    chrome.tabs.query({}, (tabs) => {
+      const existingDashboard = tabs.find(tab => tab.url === dashboardUrl);
+      
+      if (existingDashboard) {
+        // Switch to existing dashboard tab
+        chrome.tabs.update(existingDashboard.id, { active: true });
+        console.log('Switched to existing dashboard tab');
+      } else {
+        // Create new dashboard tab
+        chrome.tabs.create({ url: dashboardUrl });
+        console.log('Created new dashboard tab');
+      }
+    });
   }
 
   // Force data collection for testing

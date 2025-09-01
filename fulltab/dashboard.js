@@ -1,10 +1,11 @@
-// Dashboard JavaScript - CSP Fixed with proper event listeners
+// Dashboard JavaScript - Cleaned up and enhanced
 let dashboardData = {
   latencyHistory: [],
   speedHistory: [],
   jitterHistory: [],
   scoreHistory: [],
-  timestamps: []
+  timestamps: [],
+  providerHistory: []
 };
 
 let charts = {};
@@ -25,7 +26,6 @@ document.addEventListener('DOMContentLoaded', function() {
   initializeCharts();
   loadNetworkInfo();
   loadDashboardData();
-  debugStorageContents();
   setupEventListeners();
   
   // Set up storage listener for real-time updates
@@ -51,32 +51,10 @@ function setupEventListeners() {
   // Dark mode toggle
   document.getElementById('toggleDarkBtn')?.addEventListener('click', toggleDarkMode);
   
-  // Debug buttons
-  document.getElementById('debugStorageBtn')?.addEventListener('click', debugStorageContents);
-  document.getElementById('createTestDataBtn')?.addEventListener('click', createTestData);
-  document.getElementById('refreshDataBtn')?.addEventListener('click', refreshData);
-  
   // Main control buttons
   document.getElementById('runDiagnosticsBtn')?.addEventListener('click', runDiagnostics);
   document.getElementById('speedTestBtn')?.addEventListener('click', runSpeedTest);
   document.getElementById('clearHistoryBtn')?.addEventListener('click', clearHistory);
-}
-
-// Debug function to check all storage contents
-function debugStorageContents() {
-  chrome.storage.local.get(null, (data) => {
-    console.log('=== ALL CHROME STORAGE CONTENTS ===');
-    console.log(data);
-    console.log('=== END STORAGE CONTENTS ===');
-    
-    if (data.dashboardData) {
-      console.log('Dashboard data found:', data.dashboardData);
-      alert(`Dashboard data found!\nLatency points: ${data.dashboardData.latencyHistory?.length || 0}\nSpeed points: ${data.dashboardData.speedHistory?.length || 0}`);
-    } else {
-      console.log('No dashboardData found in storage');
-      alert('No dashboardData found in Chrome storage. Run tests from the extension popup first.');
-    }
-  });
 }
 
 function showExtensionNotAvailable() {
@@ -157,6 +135,104 @@ function initializeCharts() {
     options: chartOptions
   });
 
+  // Network Providers (Polar Area)
+  charts.provider = new Chart(document.getElementById('providerChart'), {
+    type: 'polarArea',
+    data: {
+      labels: [],
+      datasets: [{
+        data: [],
+        backgroundColor: [
+          '#0078d4',
+          '#28a745', 
+          '#f9a825',
+          '#d93025',
+          '#9333ea',
+          '#17a2b8'
+        ],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            color: textColor,
+            padding: 10,
+            font: {
+              size: 11
+            }
+          }
+        }
+      },
+      scales: {
+        r: {
+          ticks: {
+            color: textColor,
+            backdropColor: 'transparent'
+          },
+          grid: {
+            color: gridColor
+          },
+          pointLabels: {
+            color: textColor
+          }
+        }
+      }
+    }
+  });
+
+  // Performance Distribution (Radar)
+  charts.performanceDist = new Chart(document.getElementById('performanceDistChart'), {
+    type: 'radar',
+    data: {
+      labels: ['Speed Score', 'Latency Score', 'Jitter Score', 'Overall Score', 'Consistency Score'],
+      datasets: [{
+        label: 'Current Session',
+        data: [0, 0, 0, 0, 0],
+        borderColor: '#0078d4',
+        backgroundColor: 'rgba(0, 120, 212, 0.2)',
+        pointBackgroundColor: '#0078d4',
+        pointBorderColor: '#fff',
+        pointHoverBackgroundColor: '#fff',
+        pointHoverBorderColor: '#0078d4'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          labels: {
+            color: textColor
+          }
+        }
+      },
+      scales: {
+        r: {
+          min: 0,
+          max: 100,
+          ticks: {
+            color: textColor,
+            backdropColor: 'transparent'
+          },
+          grid: {
+            color: gridColor
+          },
+          pointLabels: {
+            color: textColor,
+            font: {
+              size: 11
+            }
+          }
+        }
+      }
+    }
+  });
+
   // Quality Distribution (Doughnut)
   charts.quality = new Chart(document.getElementById('qualityChart'), {
     type: 'doughnut',
@@ -228,7 +304,6 @@ function loadDashboardData() {
       updateStatusCards();
     } else {
       console.log('No dashboard data found or empty data');
-      console.log('Data structure:', data.dashboardData);
       updateEmptyState();
     }
   });
@@ -255,13 +330,17 @@ function updateAllCharts() {
   charts.performance.data.datasets[0].data = dashboardData.latencyHistory.slice(-20);
   charts.performance.data.datasets[1].data = dashboardData.jitterHistory.slice(-20);
   charts.performance.update('none');
-  console.log('Performance chart updated');
 
   // Update speed chart
   charts.speed.data.labels = dashboardData.timestamps.slice(-10);
   charts.speed.data.datasets[0].data = dashboardData.speedHistory.slice(-10);
   charts.speed.update('none');
-  console.log('Speed chart updated');
+
+  // Update provider chart
+  updateProviderChart();
+
+  // Update performance distribution radar
+  updatePerformanceDistribution();
 
   // Update quality distribution
   const scores = dashboardData.scoreHistory.filter(s => s !== null && s !== undefined);
@@ -273,14 +352,80 @@ function updateAllCharts() {
     
     charts.quality.data.datasets[0].data = [excellent, good, fair, poor];
     charts.quality.update('none');
-    console.log('Quality chart updated with distribution:', [excellent, good, fair, poor]);
   }
 
   // Update score chart
   charts.score.data.labels = dashboardData.timestamps.slice(-20);
   charts.score.data.datasets[0].data = dashboardData.scoreHistory.slice(-20);
   charts.score.update('none');
-  console.log('Score chart updated');
+}
+
+function updateProviderChart() {
+  // Get provider data from storage
+  chrome.storage.local.get('providerHistory', (data) => {
+    const providers = data.providerHistory || [];
+    
+    if (providers.length === 0) {
+      // Show placeholder data
+      charts.provider.data.labels = ['No Data Available'];
+      charts.provider.data.datasets[0].data = [1];
+      charts.provider.data.datasets[0].backgroundColor = ['#666'];
+    } else {
+      // Count provider occurrences
+      const providerCounts = {};
+      providers.forEach(provider => {
+        const name = provider.split(' ')[0] || 'Unknown'; // Get first word
+        providerCounts[name] = (providerCounts[name] || 0) + 1;
+      });
+      
+      charts.provider.data.labels = Object.keys(providerCounts);
+      charts.provider.data.datasets[0].data = Object.values(providerCounts);
+    }
+    
+    charts.provider.update('none');
+  });
+}
+
+function updatePerformanceDistribution() {
+  const latestData = {
+    speed: dashboardData.speedHistory[dashboardData.speedHistory.length - 1],
+    latency: dashboardData.latencyHistory[dashboardData.latencyHistory.length - 1],
+    jitter: dashboardData.jitterHistory[dashboardData.jitterHistory.length - 1],
+    score: dashboardData.scoreHistory[dashboardData.scoreHistory.length - 1]
+  };
+
+  // Calculate scores out of 100
+  const speedScore = latestData.speed ? Math.min(100, (latestData.speed / 50) * 100) : 0;
+  const latencyScore = latestData.latency ? Math.max(0, 100 - (latestData.latency / 2)) : 0;
+  const jitterScore = latestData.jitter ? Math.max(0, 100 - latestData.jitter) : 0;
+  const overallScore = latestData.score || 0;
+  
+  // Calculate consistency score based on variance
+  const consistencyScore = calculateConsistencyScore();
+
+  charts.performanceDist.data.datasets[0].data = [
+    speedScore,
+    latencyScore, 
+    jitterScore,
+    overallScore,
+    consistencyScore
+  ];
+  
+  charts.performanceDist.update('none');
+}
+
+function calculateConsistencyScore() {
+  if (dashboardData.scoreHistory.length < 3) return 0;
+  
+  const recentScores = dashboardData.scoreHistory.slice(-10).filter(s => s !== null);
+  if (recentScores.length < 3) return 0;
+  
+  const avg = recentScores.reduce((a, b) => a + b, 0) / recentScores.length;
+  const variance = recentScores.reduce((sum, score) => sum + Math.pow(score - avg, 2), 0) / recentScores.length;
+  const stdDev = Math.sqrt(variance);
+  
+  // Lower standard deviation = higher consistency score
+  return Math.max(0, 100 - (stdDev * 2));
 }
 
 function updateStatusCards() {
@@ -329,24 +474,6 @@ function updateCardColor(elementId, value, thresholds, colors, reverse = false) 
   };
 
   element.style.color = colorMap[colorClass];
-}
-
-// Test data generation for debugging
-function createTestData() {
-  console.log('Creating test data...');
-  
-  const testData = {
-    latencyHistory: [45, 52, 38, 61, 47],
-    speedHistory: [25.3, 28.1, 22.7, 31.2, 26.8],
-    jitterHistory: [12, 18, 9, 25, 14],
-    scoreHistory: [85, 78, 92, 65, 81],
-    timestamps: ['10:30', '10:31', '10:32', '10:33', '10:34']
-  };
-  
-  chrome.storage.local.set({ dashboardData: testData }, () => {
-    console.log('Test data stored');
-    loadDashboardData();
-  });
 }
 
 async function runDiagnostics() {
@@ -437,21 +564,18 @@ function clearHistory() {
     speedHistory: [],
     jitterHistory: [],
     scoreHistory: [],
-    timestamps: []
+    timestamps: [],
+    providerHistory: []
   };
   
-  chrome.storage.local.set({ dashboardData: dashboardData }, () => {
+  chrome.storage.local.set({ 
+    dashboardData: dashboardData,
+    providerHistory: []
+  }, () => {
     console.log('History cleared from storage');
     updateAllCharts();
     updateStatusCards();
   });
-}
-
-function refreshData() {
-  console.log('Manual refresh triggered...');
-  debugStorageContents();
-  loadDashboardData();
-  loadNetworkInfo();
 }
 
 function toggleDarkMode() {
@@ -479,6 +603,11 @@ function updateChartColors() {
       chart.options.scales.y.ticks.color = textColor;
       chart.options.scales.y.grid.color = gridColor;
     }
+    if (chart.options.scales?.r?.ticks) {
+      chart.options.scales.r.ticks.color = textColor;
+      chart.options.scales.r.grid.color = gridColor;
+      chart.options.scales.r.pointLabels.color = textColor;
+    }
     chart.update('none');
   });
 }
@@ -494,7 +623,20 @@ async function loadNetworkInfo() {
     
     document.getElementById('ipAddress').textContent = data.ip || 'Unknown';
     document.getElementById('location').textContent = `${data.city || '?'}, ${data.region || '?'}`;
-    document.getElementById('provider').textContent = data.org ? data.org.split(' ').slice(1).join(' ') : 'Unknown';
+    
+    const provider = data.org ? data.org.split(' ').slice(1).join(' ') : 'Unknown';
+    document.getElementById('provider').textContent = provider;
+    
+    // Store provider for chart
+    if (provider !== 'Unknown') {
+      chrome.storage.local.get('providerHistory', (storage) => {
+        const providers = storage.providerHistory || [];
+        providers.push(provider);
+        // Keep only recent 50 entries
+        const recentProviders = providers.slice(-50);
+        chrome.storage.local.set({ providerHistory: recentProviders });
+      });
+    }
     
     // Check WARP status
     try {
