@@ -1,4 +1,4 @@
-// UI management and DOM manipulation
+// UI management and DOM manipulation with VPN support
 export class UIManager {
   constructor() {
     this.elements = this.initializeElements();
@@ -19,6 +19,7 @@ export class UIManager {
       score: document.getElementById("score"),
       lastSpeed: document.getElementById("lastSpeed"),
       warpStatus: document.getElementById("warpStatus"),
+      vpnStatus: document.getElementById("vpnStatus"),
       asnStatus: document.getElementById("asnStatus")
     };
   }
@@ -136,6 +137,38 @@ export class UIManager {
       this.elements.warpStatus.textContent = "WARP: Unknown";
       this.elements.warpStatus.style.color = "#999";
       this.elements.warpStatus.title = "Unable to detect WARP status";
+    }
+  }
+
+  updateVPNStatus(vpnData) {
+    if (!this.elements.vpnStatus || !this.isAdvancedMode) return;
+    
+    if (vpnData.success) {
+      if (vpnData.isVPN) {
+        const provider = vpnData.vpnProvider || 'Unknown VPN';
+        const confidence = vpnData.confidence || 0;
+        
+        this.elements.vpnStatus.textContent = `VPN: ${provider} 🛡️`;
+        this.elements.vpnStatus.style.color = "#0078d4";
+        this.elements.vpnStatus.title = `VPN detected: ${provider} (${confidence}% confidence)\nType: ${vpnData.vpnType || 'Unknown'}`;
+        
+        // Different colors based on VPN type
+        if (vpnData.vpnType === 'Commercial VPN') {
+          this.elements.vpnStatus.style.color = "#28a745";
+        } else if (vpnData.vpnType === 'Privacy Service') {
+          this.elements.vpnStatus.style.color = "#0078d4";
+        } else if (vpnData.vpnType === 'Datacenter/Hosting') {
+          this.elements.vpnStatus.style.color = "#f9a825";
+        }
+      } else {
+        this.elements.vpnStatus.textContent = "VPN: Not Detected";
+        this.elements.vpnStatus.style.color = "#666";
+        this.elements.vpnStatus.title = "No VPN service detected";
+      }
+    } else {
+      this.elements.vpnStatus.textContent = "VPN: Detection Failed";
+      this.elements.vpnStatus.style.color = "#999";
+      this.elements.vpnStatus.title = "Unable to detect VPN status";
     }
   }
 

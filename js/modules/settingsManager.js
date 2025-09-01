@@ -1,10 +1,11 @@
-// Settings and feature toggles management
+// Settings and feature toggles management with VPN support
 export class SettingsManager {
   constructor() {
     this.defaultSettings = {
       advancedModeEnabled: true,
       enableSpeedTest: true,
       showWarpStatus: true,
+      showVpnStatus: true,
       showNetworkScore: true,
       darkModeEnabled: false
     };
@@ -69,6 +70,7 @@ export class SettingsManager {
   initFeatureToggles() {
     const toggles = [
       { id: "toggleSpeedTest", key: "enableSpeedTest", elementId: "speedTest" },
+      { id: "toggleVpnCheck", key: "showVpnStatus", elementId: "vpnStatus" },
       { id: "toggleWarpCheck", key: "showWarpStatus", elementId: "warpStatus" },
       { id: "toggleNetworkScore", key: "showNetworkScore", elementId: "networkScore" }
     ];

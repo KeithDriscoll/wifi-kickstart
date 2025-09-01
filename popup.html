@@ -135,10 +135,11 @@
       <div id="score">Network Score: Calculating...</div>
     </div>
 
-    <!-- Cloudflare status -->
+    <!-- Security & Privacy status -->
     <div class="section advanced-only">
-      <div class="label">Network Details</div>
-      <div id="warpStatus">WARP: Checking...</div>
+      <div class="label">Security & Privacy</div>
+        <div id="warpStatus">WARP: Checking...</div>
+        <div id="vpnStatus">VPN: Detecting...</div>
       <div id="asnStatus">Network Provider: Loading...</div>
     </div>
 
@@ -172,6 +173,14 @@
         <div class="pillLabel">Speed Test</div>
         <label class="switch">
           <input type="checkbox" id="toggleSpeedTest" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="pillToggle">
+        <div class="pillLabel">VPN Detection</div>
+        <label class="switch">
+          <input type="checkbox" id="toggleVpnCheck" checked>
           <span class="slider"></span>
         </label>
       </div>

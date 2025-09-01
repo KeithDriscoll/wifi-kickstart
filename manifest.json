@@ -15,7 +15,9 @@
     "https://ipinfo.io/*",
     "https://download.thinkbroadband.com/*",
     "https://www.cloudflare.com/*",
-    "https://cdnjs.cloudflare.com/*"
+    "https://cdnjs.cloudflare.com/*",
+    "https://ipqualityscore.com/*",
+    "https://ipapi.co/*"
   ],
  
   "background": {

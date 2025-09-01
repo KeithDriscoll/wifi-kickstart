@@ -82,8 +82,8 @@ async function runFullDiagnostics() {
     console.log('Storing results:', results);
     await storeDashboardData(results, timestamp);
     
-    // Store provider info
-    await storeProviderInfo();
+    // Store provider and VPN info
+    await storeNetworkInfo();
     
     return results;
   } catch (error) {
@@ -115,8 +115,8 @@ async function runSpeedTestOnly() {
   }
 }
 
-// Store provider information for charts
-async function storeProviderInfo() {
+// Store provider and VPN information for charts
+async function storeNetworkInfo() {
   try {
     const response = await fetch("https://ipinfo.io/json");
     const data = await response.json();
@@ -124,16 +124,70 @@ async function storeProviderInfo() {
     if (data.org) {
       const provider = data.org.split(" ").slice(1).join(" ");
       
+      // Store provider history
       chrome.storage.local.get('providerHistory', (storage) => {
         const providers = storage.providerHistory || [];
         providers.push(provider);
-        // Keep only recent 50 entries
         const recentProviders = providers.slice(-50);
         chrome.storage.local.set({ providerHistory: recentProviders });
       });
+      
+      // Detect and store VPN info
+      const org = data.org.toLowerCase();
+      let vpnDetected = false;
+      let vpnProvider = null;
+      
+      // VPN detection logic
+      const vpnKeywords = {
+        'nordvpn': 'NordVPN',
+        'expressvpn': 'ExpressVPN',
+        'surfshark': 'Surfshark',
+        'cyberghost': 'CyberGhost',
+        'protonvpn': 'ProtonVPN',
+        'mullvad': 'Mullvad',
+        'privateinternetaccess': 'Private Internet Access',
+        'cloudflare': 'Cloudflare WARP',
+        'tunnelbear': 'TunnelBear',
+        'windscribe': 'Windscribe',
+        'ipvanish': 'IPVanish',
+        'vyprvpn': 'VyprVPN',
+        'atlas': 'Atlas VPN',
+        'hide.me': 'Hide.me'
+      };
+      
+      // Check for known VPN providers
+      for (const [keyword, provider] of Object.entries(vpnKeywords)) {
+        if (org.includes(keyword)) {
+          vpnDetected = true;
+          vpnProvider = provider;
+          break;
+        }
+      }
+      
+      // Check for datacenter/hosting indicators
+      if (!vpnDetected) {
+        const datacenterTerms = ['hosting', 'server', 'datacenter', 'cloud', 'vps', 'virtual'];
+        if (datacenterTerms.some(term => org.includes(term))) {
+          vpnDetected = true;
+          vpnProvider = 'Datacenter/VPN';
+        }
+      }
+      
+      // Store VPN history
+      chrome.storage.local.get('vpnHistory', (storage) => {
+        const vpnHistory = storage.vpnHistory || [];
+        vpnHistory.push({
+          timestamp: new Date().toISOString(),
+          isVPN: vpnDetected,
+          provider: vpnProvider,
+          org: data.org
+        });
+        const recentVPN = vpnHistory.slice(-50);
+        chrome.storage.local.set({ vpnHistory: recentVPN });
+      });
     }
   } catch (error) {
-    console.log('Failed to store provider info:', error);
+    console.log('Failed to store network info:', error);
   }
 }
 

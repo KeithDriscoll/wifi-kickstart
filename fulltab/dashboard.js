@@ -5,7 +5,8 @@ let dashboardData = {
   jitterHistory: [],
   scoreHistory: [],
   timestamps: [],
-  providerHistory: []
+  providerHistory: [],
+  vpnHistory: []
 };
 
 let charts = {};
@@ -259,7 +260,31 @@ function initializeCharts() {
     }
   });
 
-  // Network Score (Line)
+  // VPN Usage Chart (Doughnut)
+  charts.vpn = new Chart(document.getElementById('vpnChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['No VPN', 'VPN Active'],
+      datasets: [{
+        data: [1, 0],
+        backgroundColor: ['#28a745', '#0078d4'],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            color: textColor,
+            padding: 15
+          }
+        }
+      }
+    }
+  });
   charts.score = new Chart(document.getElementById('scoreChart'), {
     type: 'line',
     data: {
@@ -336,6 +361,9 @@ function updateAllCharts() {
   charts.speed.data.datasets[0].data = dashboardData.speedHistory.slice(-10);
   charts.speed.update('none');
 
+  // Update VPN chart
+  updateVPNChart();
+
   // Update provider chart
   updateProviderChart();
 
@@ -358,6 +386,44 @@ function updateAllCharts() {
   charts.score.data.labels = dashboardData.timestamps.slice(-20);
   charts.score.data.datasets[0].data = dashboardData.scoreHistory.slice(-20);
   charts.score.update('none');
+}
+
+function updateVPNChart() {
+  chrome.storage.local.get('vpnHistory', (data) => {
+    const vpnHistory = data.vpnHistory || [];
+    
+    if (vpnHistory.length === 0) {
+      charts.vpn.data.labels = ['No Data'];
+      charts.vpn.data.datasets[0].data = [1];
+      charts.vpn.data.datasets[0].backgroundColor = ['#666'];
+    } else {
+      // Count VPN vs No VPN sessions
+      const vpnSessions = vpnHistory.filter(entry => entry.isVPN).length;
+      const noVpnSessions = vpnHistory.length - vpnSessions;
+      
+      // Get VPN provider breakdown
+      const vpnProviders = {};
+      vpnHistory.filter(entry => entry.isVPN && entry.provider).forEach(entry => {
+        vpnProviders[entry.provider] = (vpnProviders[entry.provider] || 0) + 1;
+      });
+      
+      if (Object.keys(vpnProviders).length > 0) {
+        // Show provider breakdown
+        charts.vpn.data.labels = ['No VPN', ...Object.keys(vpnProviders)];
+        charts.vpn.data.datasets[0].data = [noVpnSessions, ...Object.values(vpnProviders)];
+        charts.vpn.data.datasets[0].backgroundColor = [
+          '#28a745', '#0078d4', '#9333ea', '#f9a825', '#17a2b8', '#d93025'
+        ];
+      } else {
+        // Simple VPN vs No VPN
+        charts.vpn.data.labels = ['No VPN', 'VPN Active'];
+        charts.vpn.data.datasets[0].data = [noVpnSessions, vpnSessions];
+        charts.vpn.data.datasets[0].backgroundColor = ['#28a745', '#0078d4'];
+      }
+    }
+    
+    charts.vpn.update('none');
+  });
 }
 
 function updateProviderChart() {
@@ -565,12 +631,14 @@ function clearHistory() {
     jitterHistory: [],
     scoreHistory: [],
     timestamps: [],
-    providerHistory: []
+    providerHistory: [],
+    vpnHistory: []
   };
   
   chrome.storage.local.set({ 
     dashboardData: dashboardData,
-    providerHistory: []
+    providerHistory: [],
+    vpnHistory: []
   }, () => {
     console.log('History cleared from storage');
     updateAllCharts();
@@ -638,6 +706,9 @@ async function loadNetworkInfo() {
       });
     }
     
+    // Detect and display VPN status
+    await detectAndDisplayVPN();
+    
     // Check WARP status
     try {
       const warpResponse = await fetch('https://www.cloudflare.com/cdn-cgi/trace');
@@ -661,5 +732,79 @@ async function loadNetworkInfo() {
     document.getElementById('location').textContent = 'Unknown';
     document.getElementById('provider').textContent = 'Unknown';
     document.getElementById('warpStatus').textContent = 'Unknown';
+  }
+}
+
+async function detectAndDisplayVPN() {
+  try {
+    // Simple VPN detection for dashboard
+    const response = await fetch('https://ipinfo.io/json');
+    const data = await response.json();
+    
+    const org = (data.org || '').toLowerCase();
+    let vpnDetected = false;
+    let vpnProvider = 'None Detected';
+    
+    // Check for common VPN indicators
+    const vpnKeywords = {
+      'nordvpn': 'NordVPN',
+      'expressvpn': 'ExpressVPN', 
+      'surfshark': 'Surfshark',
+      'cyberghost': 'CyberGhost',
+      'protonvpn': 'ProtonVPN',
+      'mullvad': 'Mullvad',
+      'privateinternetaccess': 'Private Internet Access',
+      'cloudflare': 'Cloudflare WARP',
+      'tunnelbear': 'TunnelBear',
+      'windscribe': 'Windscribe',
+      'ipvanish': 'IPVanish',
+      'vyprvpn': 'VyprVPN'
+    };
+    
+    // Check against known providers
+    for (const [keyword, provider] of Object.entries(vpnKeywords)) {
+      if (org.includes(keyword)) {
+        vpnDetected = true;
+        vpnProvider = provider;
+        break;
+      }
+    }
+    
+    // Check for datacenter/hosting indicators
+    if (!vpnDetected) {
+      const datacenterTerms = ['hosting', 'server', 'datacenter', 'cloud', 'vps', 'virtual'];
+      if (datacenterTerms.some(term => org.includes(term))) {
+        vpnDetected = true;
+        vpnProvider = 'Datacenter/VPN';
+      }
+    }
+    
+    // Update VPN status display
+    const vpnElement = document.getElementById('vpnStatus');
+    if (vpnDetected) {
+      vpnElement.textContent = `${vpnProvider} 🛡️`;
+      vpnElement.style.color = 'var(--primary-color)';
+    } else {
+      vpnElement.textContent = 'Not Detected';
+      vpnElement.style.color = 'var(--text-secondary)';
+    }
+    
+    // Store VPN info for charts
+    chrome.storage.local.get('vpnHistory', (storage) => {
+      const vpnHistory = storage.vpnHistory || [];
+      vpnHistory.push({
+        timestamp: new Date().toISOString(),
+        isVPN: vpnDetected,
+        provider: vpnDetected ? vpnProvider : null,
+        org: data.org
+      });
+      // Keep only recent 50 entries
+      const recentVPN = vpnHistory.slice(-50);
+      chrome.storage.local.set({ vpnHistory: recentVPN });
+    });
+    
+  } catch (error) {
+    console.error('VPN detection failed:', error);
+    document.getElementById('vpnStatus').textContent = 'Detection Failed';
   }
 }

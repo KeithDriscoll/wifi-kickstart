@@ -1,4 +1,4 @@
-// Main application entry point - Fixed for dashboard integration
+// Main application entry point - Enhanced with VPN detection
 import { ConnectionManager } from './modules/connection.js';
 import { NetworkInfoManager } from './modules/networkInfo.js';
 import { UIManager } from './modules/uiManager.js';
@@ -40,7 +40,7 @@ class WiFiKickstartApp {
       });
     }
 
-    // Speed test buttons - FIXED to store dashboard data
+    // Speed test buttons
     if (this.uiManager.elements.runSpeedBtn) {
       this.uiManager.elements.runSpeedBtn.addEventListener("click", () => {
         this.runSpeedTest(false);
@@ -68,7 +68,7 @@ class WiFiKickstartApp {
       this.uiManager.isAdvancedMode = event.detail.isAdvancedMode;
       this.uiManager.setAdvancedMode(event.detail.isAdvancedMode);
       
-      // FIXED: Collect data when switching to advanced mode
+      // Collect data when switching to advanced mode
       if (event.detail.isAdvancedMode) {
         this.runFullDiagnostics();
       }
@@ -89,9 +89,10 @@ class WiFiKickstartApp {
     // Initial data fetching
     this.requestConnectionCheck();
     this.fetchIPAddress();
+    this.detectVPNUsage();
     this.detectCloudflareUsage();
     
-    // FIXED: Run initial diagnostics to populate dashboard
+    // Run initial diagnostics to populate dashboard
     if (isAdvancedMode) {
       setTimeout(() => this.runFullDiagnostics(), 1000);
     }
@@ -104,7 +105,7 @@ class WiFiKickstartApp {
       const status = isOnline ? "Online ✅" : "Offline ❌";
       this.uiManager.updateStatus(`Status: ${status}`, isOnline);
       
-      // FIXED: Always collect data when checking connection
+      // Always collect data when checking connection
       if (isOnline) {
         this.runFullDiagnostics();
       }
@@ -122,7 +123,41 @@ class WiFiKickstartApp {
     }
   }
 
-  // FIXED: Combined diagnostics method that stores dashboard data
+  // Enhanced VPN detection
+  async detectVPNUsage() {
+    try {
+      const vpnData = await this.networkInfoManager.detectVPN();
+      this.uiManager.updateVPNStatus(vpnData);
+      
+      // Store VPN data for dashboard charts
+      if (vpnData.success) {
+        this.storeVPNData(vpnData);
+      }
+    } catch (error) {
+      this.uiManager.updateVPNStatus({ success: false });
+    }
+  }
+
+  // Store VPN detection results for dashboard
+  storeVPNData(vpnData) {
+    chrome.storage.local.get('vpnHistory', (storage) => {
+      const vpnHistory = storage.vpnHistory || [];
+      vpnHistory.push({
+        timestamp: new Date().toISOString(),
+        isVPN: vpnData.isVPN,
+        provider: vpnData.vpnProvider,
+        type: vpnData.vpnType,
+        confidence: vpnData.confidence,
+        indicators: vpnData.indicators
+      });
+      
+      // Keep only recent 50 entries
+      const recentVPN = vpnHistory.slice(-50);
+      chrome.storage.local.set({ vpnHistory: recentVPN });
+    });
+  }
+
+  // Combined diagnostics method that stores dashboard data
   async runFullDiagnostics() {
     if (!this.uiManager.isAdvancedMode) return;
     
@@ -145,7 +180,7 @@ class WiFiKickstartApp {
       const score = this.connectionManager.calculateNetworkScore();
       this.uiManager.updateNetworkScore(score);
       
-      // CRITICAL FIX: Store all data together for dashboard
+      // Store all data together for dashboard
       const dashboardResults = {};
       if (latencyData.success) dashboardResults.latency = latencyData.latency;
       if (jitterData.success) dashboardResults.jitter = jitterData.jitter;
@@ -154,6 +189,9 @@ class WiFiKickstartApp {
       
       this.dashboardManager.addDataPoint(dashboardResults);
       console.log('Dashboard data stored:', dashboardResults);
+      
+      // Update VPN detection after diagnostics
+      this.detectVPNUsage();
       
     } catch (error) {
       console.error('Full diagnostics failed:', error);
@@ -202,7 +240,7 @@ class WiFiKickstartApp {
       this.uiManager.updateSpeedTest(speedData, isSimpleMode);
       this.updateNetworkScore();
       
-      // FIXED: Store complete data point for dashboard
+      // Store complete data point for dashboard
       const dashboardResults = { speed: speedData.speed };
       
       // If in advanced mode, include current metrics
