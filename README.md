@@ -29,30 +29,7 @@ Want to inspect or contribute? [Clone this repo](https://github.com/your-repo)
 ## 📁 File Structure
 
 ```text
-wifi-kickstart-extension/
-├── manifest.json                 # Extension configuration (updated paths)
-├── popup.html                    # Main popup (updated with modular CSS/JS)
-├── icons/                        # Extension icons
-│   ├── icon16.png
-│   ├── icon48.png
-│   └── icon128.png
-├── css/                          # Modular CSS files
-│   ├── base.css                  # Variables, layout, typography
-│   ├── components.css            # Buttons, switches, menu toggle
-│   ├── panels.css                # Side panel, theme panel styles
-│   ├── themes.css                # Theme system styles
-│   ├── modes.css                 # Simple/Advanced mode styles
-│   └── darkMode.css              # Dark mode overrides
-└── js/                           # Modular JavaScript files
-    ├── background.js             # Service worker (moved to js folder)
-    ├── popup.js                  # Main application entry point
-    └── modules/
-        ├── connection.js         # Connection testing & metrics
-        ├── networkInfo.js        # IP address & provider detection
-        ├── uiManager.js          # DOM manipulation & UI updates
-        ├── themeManager.js       # Theme system & appearance
-        ├── settingsManager.js    # Settings & feature toggles
-        └── utils.js              # Shared utility functions
+See FILE_STRUCTURE.md
 
 ## 💡 Idea Vault
 - [UX Enhancements](ideas/ux-enhancements.md)
