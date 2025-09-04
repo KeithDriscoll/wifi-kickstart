@@ -1,4 +1,4 @@
-// Theme and appearance management
+// Theme and appearance management with dashboard sync
 export class ThemeManager {
   constructor() {
     this.themes = {
@@ -17,6 +17,44 @@ export class ThemeManager {
     this.initCustomColors();
     this.loadSavedTheme();
     this.reapplyThemeState();
+    this.setupStorageListener(); // Listen for theme changes from other contexts
+  }
+
+  // Listen for theme changes from dashboard or other popup instances
+  setupStorageListener() {
+    if (typeof chrome !== 'undefined' && chrome.storage) {
+      chrome.storage.onChanged.addListener((changes, namespace) => {
+        if (namespace === 'local') {
+          if (changes.darkModeEnabled || changes.customTheme || changes.currentThemeName) {
+            console.log('Theme updated from another context, reapplying...');
+            this.reapplyThemeState();
+            this.updateUIToMatchStorage();
+          }
+        }
+      });
+    }
+  }
+
+  // Update UI controls to match storage state
+  updateUIToMatchStorage() {
+    chrome.storage.local.get(['darkModeEnabled', 'currentThemeName'], (data) => {
+      // Update dark mode toggle
+      const darkToggle = document.getElementById("toggleDarkMode");
+      if (darkToggle) {
+        darkToggle.checked = data.darkModeEnabled ?? false;
+      }
+
+      // Update theme selection
+      if (data.currentThemeName) {
+        document.querySelectorAll('.theme-option').forEach(opt => 
+          opt.classList.remove('selected'));
+        
+        const selectedOption = document.querySelector(`[data-theme="${data.currentThemeName}"]`);
+        if (selectedOption) {
+          selectedOption.classList.add('selected');
+        }
+      }
+    });
   }
 
   initDarkModeToggle() {
@@ -29,13 +67,16 @@ export class ThemeManager {
       this.applyTheme(enabled);
     });
 
-    // Save on change
+    // Save on change and notify other contexts
     if (darkToggle) {
       darkToggle.addEventListener("change", () => {
         const enabled = darkToggle.checked;
         chrome.storage.local.set({ darkModeEnabled: enabled });
         this.applyTheme(enabled);
         setTimeout(() => this.reapplyThemeState(), 100);
+        
+        // Notify dashboard of theme change
+        this.notifyThemeChange();
       });
     }
   }
@@ -91,6 +132,7 @@ export class ThemeManager {
         if (this.themes[themeName]) {
           this.selectPresetTheme(themeName);
           this.updateThemeSelection(option);
+          this.notifyThemeChange(); // Notify dashboard
         }
       });
     });
@@ -103,12 +145,14 @@ export class ThemeManager {
     if (applyBtn) {
       applyBtn.addEventListener("click", () => {
         this.applyCustomColors();
+        this.notifyThemeChange(); // Notify dashboard
       });
     }
 
     if (resetBtn) {
       resetBtn.addEventListener("click", () => {
         this.resetToDefault();
+        this.notifyThemeChange(); // Notify dashboard
       });
     }
   }
@@ -297,5 +341,48 @@ export class ThemeManager {
     
     // Fallback for named colors or other formats
     return '#0078d4';
+  }
+
+  // Notify other contexts (like dashboard) of theme changes
+  notifyThemeChange() {
+    // Send message to background script to notify dashboard
+    if (typeof chrome !== 'undefined' && chrome.runtime) {
+      chrome.runtime.sendMessage({ 
+        action: 'themeChanged',
+        timestamp: Date.now()
+      }).catch(() => {
+        // Ignore if no listeners
+      });
+    }
+  }
+
+  // Static method for dashboard to initialize themes
+  static initializeDashboardThemes() {
+    const themeManager = new ThemeManager();
+    
+    // Set up storage listener for dashboard
+    if (typeof chrome !== 'undefined' && chrome.storage) {
+      chrome.storage.onChanged.addListener((changes, namespace) => {
+        if (namespace === 'local') {
+          if (changes.darkModeEnabled || changes.customTheme || changes.currentThemeName) {
+            console.log('Theme updated in dashboard from popup');
+            themeManager.reapplyThemeState();
+            
+            // Update dashboard dark mode toggle if it exists
+            const dashboardDarkToggle = document.getElementById('toggleDarkBtn');
+            if (dashboardDarkToggle && changes.darkModeEnabled) {
+              // Update dashboard dark mode state
+              const isDark = changes.darkModeEnabled.newValue;
+              document.documentElement.classList.toggle('dark', isDark);
+            }
+          }
+        }
+      });
+    }
+    
+    // Apply initial theme
+    themeManager.reapplyThemeState();
+    
+    return themeManager;
   }
 }

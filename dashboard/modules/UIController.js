@@ -1,6 +1,6 @@
 /**
- * UI Controller
- * Handles all UI interactions and updates
+ * UI Controller with Theme Sync
+ * Handles all UI interactions and updates with popup theme synchronization
  */
 
 class UIController {
@@ -8,8 +8,9 @@ class UIController {
     this.state = state;
     this.chartManager = chartManager;
     this.notificationTimeout = null;
+    this.themeManager = null;
     this.setupEventListeners();
-    this.initializeDarkMode();
+    this.initializeDashboardThemes();
   }
   
   setupEventListeners() {
@@ -33,23 +34,148 @@ class UIController {
     });
   }
   
-  initializeDarkMode() {
-    const savedTheme = localStorage.getItem('dashboardTheme');
-    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      document.documentElement.classList.add('dark');
+  initializeDashboardThemes() {
+    // Load theme manager for dashboard
+    if (typeof chrome !== 'undefined' && chrome.storage) {
+      // Listen for theme changes from popup
+      chrome.storage.onChanged.addListener((changes, namespace) => {
+        if (namespace === 'local') {
+          if (changes.darkModeEnabled || changes.customTheme || changes.currentThemeName) {
+            console.log('Theme updated in dashboard from popup');
+            this.applyThemeFromStorage();
+            
+            // Update chart colors if needed
+            if (this.chartManager) {
+              this.chartManager.chartConfig = this.chartManager.getChartConfig();
+              this.chartManager.updateAllCharts();
+            }
+          }
+        }
+      });
+      
+      // Apply initial theme from storage
+      this.applyThemeFromStorage();
+    }
+    
+    // Set up dashboard dark mode toggle to sync with popup
+    this.initializeDarkModeSync();
+  }
+  
+  initializeDarkModeSync() {
+    const darkToggle = document.getElementById('toggleDarkBtn');
+    if (!darkToggle) return;
+    
+    // Load initial state from storage
+    chrome.storage.local.get('darkModeEnabled', (data) => {
+      const isDark = data.darkModeEnabled ?? false;
+      this.updateDarkModeUI(isDark);
+    });
+    
+    // Handle dashboard dark mode toggle
+    darkToggle.addEventListener('click', () => {
+      chrome.storage.local.get('darkModeEnabled', (data) => {
+        const currentState = data.darkModeEnabled ?? false;
+        const newState = !currentState;
+        
+        // Save to storage (this will trigger the storage listener)
+        chrome.storage.local.set({ darkModeEnabled: newState });
+        
+        // Apply immediately to dashboard
+        this.updateDarkModeUI(newState);
+        
+        // Update charts
+        if (this.chartManager) {
+          this.chartManager.chartConfig = this.chartManager.getChartConfig();
+          this.chartManager.updateAllCharts();
+        }
+      });
+    });
+  }
+  
+  updateDarkModeUI(isDark) {
+    document.documentElement.classList.toggle('dark', isDark);
+    
+    // Update button icon
+    const darkToggle = document.getElementById('toggleDarkBtn');
+    if (darkToggle) {
+      darkToggle.textContent = isDark ? '☀️' : '🌓';
     }
   }
   
-  toggleDarkMode() {
-    const html = document.documentElement;
-    const isDark = html.classList.toggle('dark');
-    localStorage.setItem('dashboardTheme', isDark ? 'dark' : 'light');
+  applyThemeFromStorage() {
+    chrome.storage.local.get(['darkModeEnabled', 'customTheme', 'currentThemeName'], (data) => {
+      const isDarkMode = data.darkModeEnabled ?? false;
+      
+      if (isDarkMode) {
+        this.applyDarkTheme();
+      } else if (data.customTheme) {
+        this.applyCustomTheme(data.customTheme);
+      } else {
+        this.applyDefaultTheme();
+      }
+      
+      // Update dark mode UI
+      this.updateDarkModeUI(isDarkMode);
+    });
+  }
+  
+  applyDarkTheme() {
+    const root = document.documentElement;
+    root.classList.add('dark');
     
-    // Reinitialize chart colors
-    if (this.chartManager) {
-      this.chartManager.chartConfig = this.chartManager.getChartConfig();
-      this.chartManager.updateAllCharts();
-    }
+    // Apply dark theme CSS variables (matching popup)
+    root.style.setProperty('--bg-primary', '#0f0a1a');
+    root.style.setProperty('--bg-secondary', '#1a1330');
+    root.style.setProperty('--bg-tertiary', '#241840');
+    root.style.setProperty('--text-primary', '#e0d7f5');
+    root.style.setProperty('--text-secondary', '#b3a3d0');
+    root.style.setProperty('--text-tertiary', '#8b7aa3');
+    root.style.setProperty('--primary-color', '#b48cff');
+    root.style.setProperty('--primary-hover', '#9a6fe8');
+    root.style.setProperty('--border-color', '#3a2e50');
+    root.style.setProperty('--success-color', '#28a745');
+    root.style.setProperty('--warning-color', '#f9a825');
+    root.style.setProperty('--error-color', '#d93025');
+  }
+  
+  applyDefaultTheme() {
+    const root = document.documentElement;
+    root.classList.remove('dark');
+    
+    // Apply default theme CSS variables (matching popup)
+    root.style.setProperty('--bg-primary', '#f5f7fa');
+    root.style.setProperty('--bg-secondary', '#ffffff');
+    root.style.setProperty('--bg-tertiary', '#fafbfc');
+    root.style.setProperty('--text-primary', '#2c3e50');
+    root.style.setProperty('--text-secondary', '#6b7280');
+    root.style.setProperty('--primary-color', '#0078d4');
+    root.style.setProperty('--primary-hover', '#005ea2');
+    root.style.setProperty('--border-color', '#e1e4e8');
+    root.style.setProperty('--success-color', '#28a745');
+    root.style.setProperty('--warning-color', '#f9a825');
+    root.style.setProperty('--error-color', '#d93025');
+  }
+  
+  applyCustomTheme(theme) {
+    const root = document.documentElement;
+    root.classList.remove('dark');
+    
+    // Apply custom theme colors
+    root.style.setProperty('--primary-color', theme.primary);
+    root.style.setProperty('--primary-hover', theme.primary);
+    root.style.setProperty('--bg-primary', theme.bg);
+    root.style.setProperty('--bg-secondary', '#ffffff');
+    root.style.setProperty('--success-color', theme.success);
+    root.style.setProperty('--warning-color', theme.warning);
+    root.style.setProperty('--text-primary', '#2c3e50');
+    root.style.setProperty('--text-secondary', '#6b7280');
+    root.style.setProperty('--border-color', '#e1e4e8');
+    root.style.setProperty('--error-color', '#d93025');
+  }
+  
+  toggleDarkMode() {
+    // This is handled by the event listener in initializeDarkModeSync
+    // Just here for compatibility
   }
   
   async runDiagnostics() {

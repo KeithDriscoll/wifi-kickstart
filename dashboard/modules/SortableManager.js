@@ -220,6 +220,7 @@ class SortableManager {
     // Get all sections
     const sections = Array.from(container.querySelectorAll('.dashboard-section'));
     const header = container.querySelector('.header');
+    const footer = container.querySelector('.footer'); // ← ADD THIS LINE
     
     // Sort sections based on saved order
     const sortedSections = [];
@@ -245,6 +246,7 @@ class SortableManager {
     container.innerHTML = '';
     if (header) container.appendChild(header);
     sortedSections.forEach(section => container.appendChild(section));
+    if (footer) container.appendChild(footer); // ← ADD THIS LINE
   }
   
   applyChartOrder(order) {

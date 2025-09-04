@@ -514,10 +514,11 @@ class ChartManager {
   return false;
 }
 
-resizeAllCharts() {
-  Object.values(this.state.charts).forEach(chart => {
-    if (chart && typeof chart.resize === 'function') {
-      chart.resize();
-    }
-  });
+  resizeAllCharts() {
+    Object.values(this.state.charts).forEach(chart => {
+      if (chart && typeof chart.resize === 'function') {
+        chart.resize();
+      }
+    });
+  }
 }
