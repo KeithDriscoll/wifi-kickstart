@@ -164,7 +164,7 @@ export class DashboardManager {
 
   // Open dashboard in new tab or switch to existing
   openDashboard() {
-    const dashboardUrl = chrome.runtime.getURL('fulltab/dashboard.html');
+    const dashboardUrl = chrome.runtime.getURL('dashboard/dashboard.html');
     
     // Check if dashboard is already open
     chrome.tabs.query({}, (tabs) => {

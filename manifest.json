@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Wi‑Fi Kickstart",
   "version": "1.0",
-  "description": "Detects network issues, runs diagnostics, and opens the Wi‑Fi captive portal login page — works with ad‑blockers & pop‑up blockers.",
+  "description": "Auto open wifi login pages & wifi portal. Detect network, security, and privacy issues. Network diagnostics dashboard. Works with ad‑blockers & pop‑up blockers.",
   "homepage_url": "https://keithdriscoll.nyc",
   "permissions": [
     "tabs",
@@ -40,9 +40,9 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "fulltab/dashboard.html", 
-        "fulltab/dashboard.css", 
-        "fulltab/dashboard.js",
+        "dashboard/dashboard.html", 
+        "dashboard/dashboard.css", 
+        "dashboard/dashboard.js",
         "css/*",
         "js/*"
       ],
