@@ -1,19 +1,21 @@
 /**
- * Wi-Fi Kickstart Dashboard - Main Entry Point
- * Coordinates all dashboard modules
+ * Enhanced Dashboard Manager with Sortable Charts and Sections
+ * Adds drag-and-drop functionality and fullscreen support
  */
 
-// Dashboard Manager (Main Controller)
+// Enhanced Dashboard Manager
 class DashboardManager {
   constructor() {
     this.state = null;
     this.chartManager = null;
     this.networkManager = null;
     this.uiController = null;
+    this.sortableManager = null;
     this.refreshInterval = null;
     this.uptimeInterval = null;
     this.modulesLoaded = false;
     this.modalChart = null;
+    this.isFullscreen = false;
   }
   
   async loadModules() {
@@ -23,6 +25,7 @@ class DashboardManager {
       'modules/ChartManager.js',
       'modules/NetworkInfoManager.js',
       'modules/UIController.js',
+      'modules/SortableManager.js',
       'modules/utils.js'
     ];
     
@@ -69,9 +72,11 @@ class DashboardManager {
     this.chartManager = new ChartManager(this.state);
     this.networkManager = new NetworkInfoManager();
     this.uiController = new UIController(this.state, this.chartManager);
+    this.sortableManager = new SortableManager(this.chartManager);
     
-    // Make chart manager globally available for theme updates
+    // Make managers globally available
     window.chartManager = this.chartManager;
+    window.sortableManager = this.sortableManager;
     
     // Initialize components
     this.chartManager.initializeCharts();
@@ -79,18 +84,114 @@ class DashboardManager {
     await this.loadDashboardData();
     await this.loadProviderHistory();
     
-    // Setup real-time updates
+    // Initialize sortable functionality
+    this.sortableManager.initializeSortables();
+    
+    // Setup other features
     this.setupStorageListener();
     this.setupAutoRefresh();
     this.setupModalHandlers();
+    this.setupFullscreenToggle();
     
     // Update UI
     this.uiController.updateStatusCards();
     
-    // Add CSS for notifications
+    // Add CSS for all features
     this.injectStyles();
     
     console.log('Dashboard initialized successfully');
+  }
+  
+  setupFullscreenToggle() {
+    // Create fullscreen toggle button
+    const fullscreenBtn = document.createElement('button');
+    fullscreenBtn.id = 'fullscreenToggle';
+    fullscreenBtn.className = 'fullscreen-toggle';
+    fullscreenBtn.innerHTML = '⛶';
+    fullscreenBtn.title = 'Toggle Fullscreen';
+    fullscreenBtn.setAttribute('aria-label', 'Toggle fullscreen mode');
+    
+    document.body.appendChild(fullscreenBtn);
+    
+    // Handle fullscreen toggle
+    fullscreenBtn.addEventListener('click', () => {
+      this.toggleFullscreen();
+    });
+    
+    // Listen for fullscreen changes
+    document.addEventListener('fullscreenchange', () => {
+      this.handleFullscreenChange();
+    });
+    
+    // ESC key to exit fullscreen
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && this.isFullscreen) {
+        this.exitFullscreen();
+      }
+    });
+  }
+  
+  toggleFullscreen() {
+    if (!this.isFullscreen) {
+      this.enterFullscreen();
+    } else {
+      this.exitFullscreen();
+    }
+  }
+  
+  async enterFullscreen() {
+    try {
+      await document.documentElement.requestFullscreen();
+    } catch (error) {
+      console.error('Error entering fullscreen:', error);
+      // Fallback to CSS fullscreen
+      this.enterCSSFullscreen();
+    }
+  }
+  
+  async exitFullscreen() {
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+      } else {
+        this.exitCSSFullscreen();
+      }
+    } catch (error) {
+      console.error('Error exiting fullscreen:', error);
+    }
+  }
+  
+  enterCSSFullscreen() {
+    document.body.classList.add('css-fullscreen');
+    this.isFullscreen = true;
+    this.updateFullscreenButton();
+  }
+  
+  exitCSSFullscreen() {
+    document.body.classList.remove('css-fullscreen');
+    this.isFullscreen = false;
+    this.updateFullscreenButton();
+  }
+  
+  handleFullscreenChange() {
+    this.isFullscreen = !!document.fullscreenElement;
+    this.updateFullscreenButton();
+    
+    // Resize charts after fullscreen change
+    setTimeout(() => {
+      if (this.chartManager) {
+        this.chartManager.resizeAllCharts();
+      }
+    }, 100);
+  }
+  
+  updateFullscreenButton() {
+    const btn = document.getElementById('fullscreenToggle');
+    if (btn) {
+      btn.innerHTML = this.isFullscreen ? '⛶' : '⛶';
+      btn.title = this.isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen';
+      btn.classList.toggle('active', this.isFullscreen);
+    }
   }
   
   showExtensionRequired() {
@@ -100,7 +201,6 @@ class DashboardManager {
       if (el) el.textContent = 'Extension Required';
     });
     
-    // Show alert
     setTimeout(() => {
       if (this.uiController) {
         this.uiController.showError(
@@ -125,7 +225,6 @@ class DashboardManager {
         if (result.dashboardData) {
           console.log('Loaded dashboard data:', result.dashboardData);
           
-          // Process provider history if it exists
           if (result.dashboardData.providerHistory) {
             const providerMap = new Map(result.dashboardData.providerHistory);
             result.dashboardData.providerHistory = providerMap;
@@ -155,7 +254,6 @@ class DashboardManager {
         if (result.providerHistory && result.providerHistory.length > 0) {
           console.log('Loaded provider history:', result.providerHistory);
           
-          // Process provider history into a map for the chart
           const providerMap = new Map();
           result.providerHistory.forEach(entry => {
             if (entry.provider) {
@@ -164,10 +262,8 @@ class DashboardManager {
             }
           });
           
-          // Update state with provider history
           this.state.data.providerHistory = providerMap;
           
-          // Update provider chart
           if (this.chartManager && this.state.charts.provider) {
             const providers = Array.from(providerMap.entries());
             this.state.charts.provider.data.labels = providers.map(p => p[0]);
@@ -188,7 +284,6 @@ class DashboardManager {
           console.log('Dashboard data updated via storage listener');
           const newData = changes.dashboardData.newValue;
           if (newData) {
-            // Process provider history if it exists
             if (newData.providerHistory) {
               const providerMap = new Map(newData.providerHistory);
               newData.providerHistory = providerMap;
@@ -209,7 +304,6 @@ class DashboardManager {
   }
   
   setupAutoRefresh() {
-    // Auto-refresh data
     this.refreshInterval = setInterval(() => {
       console.log('Auto-refreshing dashboard...');
       this.loadDashboardData();
@@ -218,25 +312,21 @@ class DashboardManager {
       this.uiController.updateUptime();
     }, this.state.config.refreshInterval);
     
-    // Update uptime every minute
     this.uptimeInterval = setInterval(() => {
       this.uiController.updateUptime();
     }, 60000);
   }
   
   setupModalHandlers() {
-    // Modal setup for expanded charts
     const modal = document.getElementById('chartModal');
     const modalClose = modal?.querySelector('.modal-close');
     
-    // Close modal handler
     if (modalClose) {
       modalClose.addEventListener('click', () => {
         this.closeModal();
       });
     }
     
-    // Close modal on outside click
     if (modal) {
       modal.addEventListener('click', (e) => {
         if (e.target === modal) {
@@ -245,7 +335,6 @@ class DashboardManager {
       });
     }
     
-    // Handle expand buttons
     document.querySelectorAll('.chart-btn[data-action="expand"]').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -257,7 +346,6 @@ class DashboardManager {
       });
     });
     
-    // ESC key to close modal
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && modal?.classList.contains('active')) {
         this.closeModal();
@@ -272,11 +360,9 @@ class DashboardManager {
     const sourceChart = this.state.charts[chartType];
     if (!sourceChart) return;
     
-    // Show modal
     modal.classList.add('active');
     modal.setAttribute('aria-hidden', 'false');
     
-    // Get or create modal canvas
     let modalCanvas = document.getElementById('modalChart');
     if (!modalCanvas) {
       modalCanvas = document.createElement('canvas');
@@ -284,26 +370,21 @@ class DashboardManager {
       modal.querySelector('.modal-content').appendChild(modalCanvas);
     }
     
-    // Destroy existing modal chart if any
     if (this.modalChart) {
       this.modalChart.destroy();
     }
     
-    // Clone chart configuration
     const config = {
       type: sourceChart.config.type,
       data: JSON.parse(JSON.stringify(sourceChart.config.data)),
       options: JSON.parse(JSON.stringify(sourceChart.config.options))
     };
     
-    // Adjust options for modal display
     config.options.maintainAspectRatio = true;
     config.options.aspectRatio = 2;
     
-    // Create new chart in modal
     this.modalChart = new Chart(modalCanvas, config);
     
-    // Add title to modal
     const modalContent = modal.querySelector('.modal-content');
     const existingTitle = modalContent.querySelector('.modal-title');
     if (existingTitle) {
@@ -334,7 +415,6 @@ class DashboardManager {
     modal.classList.remove('active');
     modal.setAttribute('aria-hidden', 'true');
     
-    // Destroy modal chart
     if (this.modalChart) {
       this.modalChart.destroy();
       this.modalChart = null;
@@ -359,42 +439,198 @@ class DashboardManager {
         animation: slideDown 0.3s ease;
       }
       
-      .notification-success {
-        background: var(--success-color);
-      }
+      .notification-success { background: var(--success-color); }
+      .notification-error { background: var(--error-color); }
+      .notification-info { background: var(--info-color); }
       
-      .notification-error {
-        background: var(--error-color);
-      }
-      
-      .notification-info {
-        background: var(--info-color);
-      }
-      
-      .notification.fade-out {
-        animation: slideUp 0.3s ease;
-      }
+      .notification.fade-out { animation: slideUp 0.3s ease; }
       
       @keyframes slideDown {
-        from {
-          transform: translateX(-50%) translateY(-20px);
-          opacity: 0;
-        }
-        to {
-          transform: translateX(-50%) translateY(0);
-          opacity: 1;
-        }
+        from { transform: translateX(-50%) translateY(-20px); opacity: 0; }
+        to { transform: translateX(-50%) translateY(0); opacity: 1; }
       }
       
       @keyframes slideUp {
-        from {
-          transform: translateX(-50%) translateY(0);
-          opacity: 1;
-        }
-        to {
-          transform: translateX(-50%) translateY(-20px);
-          opacity: 0;
-        }
+        from { transform: translateX(-50%) translateY(0); opacity: 1; }
+        to { transform: translateX(-50%) translateY(-20px); opacity: 0; }
+      }
+      
+      /* Sortable Styles */
+      .sortable-ghost {
+        opacity: 0.5;
+        background: var(--bg-tertiary) !important;
+        border: 2px dashed var(--primary-color) !important;
+        transform: rotate(2deg);
+      }
+      
+      .sortable-chosen {
+        background: var(--bg-tertiary) !important;
+        box-shadow: 0 8px 32px rgba(0, 120, 212, 0.3) !important;
+        transform: scale(1.02);
+        z-index: 999;
+      }
+      
+      .sortable-drag {
+        opacity: 0.8;
+        transform: rotate(-2deg) scale(1.05);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3) !important;
+      }
+      
+      .chart-container {
+        transition: all 0.3s ease;
+        cursor: grab;
+      }
+      
+      .chart-container:active {
+        cursor: grabbing;
+      }
+      
+      .dashboard-section {
+        transition: all 0.3s ease;
+        cursor: grab;
+        position: relative;
+      }
+      
+      .dashboard-section:active {
+        cursor: grabbing;
+      }
+      
+      .dashboard-section::before {
+        content: '';
+        position: absolute;
+        top: -5px;
+        left: -5px;
+        right: -5px;
+        bottom: -5px;
+        border: 2px solid transparent;
+        border-radius: var(--radius-lg);
+        transition: all 0.3s ease;
+        pointer-events: none;
+      }
+      
+      .dashboard-section:hover::before {
+        border-color: var(--primary-color);
+        opacity: 0.3;
+      }
+      
+      /* Section drag handle */
+      .section-drag-handle {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        width: 20px;
+        height: 20px;
+        background: var(--primary-color);
+        border-radius: 4px;
+        cursor: grab;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 12px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 10;
+      }
+      
+      .section-drag-handle:active {
+        cursor: grabbing;
+      }
+      
+      .dashboard-section:hover .section-drag-handle {
+        opacity: 1;
+      }
+      
+      /* Chart drag handle */
+      .chart-drag-handle {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        width: 16px;
+        height: 16px;
+        background: var(--secondary-color);
+        border-radius: 3px;
+        cursor: grab;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 10px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 10;
+      }
+      
+      .chart-drag-handle:active {
+        cursor: grabbing;
+      }
+      
+      .chart-container:hover .chart-drag-handle {
+        opacity: 1;
+      }
+      
+      /* Fullscreen Toggle */
+      .fullscreen-toggle {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 50px;
+        height: 50px;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: var(--radius-full);
+        cursor: pointer;
+        font-size: 1.4rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all var(--transition-base);
+        z-index: 1000;
+        box-shadow: 0 4px 20px rgba(0, 120, 212, 0.3);
+      }
+      
+      .fullscreen-toggle:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 25px rgba(0, 120, 212, 0.4);
+      }
+      
+      .fullscreen-toggle.active {
+        background: var(--success-color);
+      }
+      
+      /* CSS Fullscreen fallback */
+      body.css-fullscreen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 9999;
+        background: var(--bg-primary);
+        overflow-y: auto;
+      }
+      
+      body.css-fullscreen .toggle-dark {
+        z-index: 10000;
+      }
+      
+      body.css-fullscreen .fullscreen-toggle {
+        z-index: 10000;
+      }
+      
+      /* Fullscreen adjustments */
+      :fullscreen {
+        background: var(--bg-primary);
+      }
+      
+      :fullscreen .dashboard-container {
+        max-width: none;
+        padding: var(--spacing-md);
+      }
+      
+      :fullscreen .charts-grid {
+        grid-template-columns: repeat(3, 1fr);
       }
       
       /* Loading state animation */
@@ -433,11 +669,26 @@ class DashboardManager {
         max-width: 100%;
         height: auto !important;
       }
+      
+      /* Responsive adjustments for sortable */
+      @media (max-width: 768px) {
+        .section-drag-handle,
+        .chart-drag-handle {
+          opacity: 1;
+        }
+        
+        .fullscreen-toggle {
+          bottom: 10px;
+          right: 10px;
+          width: 40px;
+          height: 40px;
+          font-size: 1.2rem;
+        }
+      }
     `;
     document.head.appendChild(style);
   }
   
-  // Cleanup method
   destroy() {
     if (this.refreshInterval) {
       clearInterval(this.refreshInterval);
@@ -446,12 +697,10 @@ class DashboardManager {
       clearInterval(this.uptimeInterval);
     }
     
-    // Destroy modal chart
     if (this.modalChart) {
       this.modalChart.destroy();
     }
     
-    // Destroy charts
     if (this.state && this.state.charts) {
       Object.values(this.state.charts).forEach(chart => {
         if (chart && typeof chart.destroy === 'function') {
@@ -459,17 +708,19 @@ class DashboardManager {
         }
       });
     }
+    
+    if (this.sortableManager) {
+      this.sortableManager.destroy();
+    }
   }
 }
 
 // Initialize Dashboard on DOM Ready
 document.addEventListener('DOMContentLoaded', async () => {
   try {
-    // Create and initialize dashboard
     window.dashboard = new DashboardManager();
     await window.dashboard.initialize();
     
-    // Handle page unload
     window.addEventListener('beforeunload', () => {
       if (window.dashboard) {
         window.dashboard.destroy();
@@ -477,7 +728,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   } catch (error) {
     console.error('Failed to initialize dashboard:', error);
-    // Show error to user
     document.getElementById('currentLatency').textContent = 'Load Error';
     document.getElementById('currentSpeed').textContent = 'Load Error';
     document.getElementById('currentJitter').textContent = 'Load Error';
@@ -485,7 +735,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 });
 
-// Export for testing/debugging (if needed)
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = { DashboardManager };
 }

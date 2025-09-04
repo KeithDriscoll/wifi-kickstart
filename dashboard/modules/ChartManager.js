@@ -505,4 +505,19 @@ class ChartManager {
     }
     return false;
   }
+  resizeChart(chartType) {
+  const chart = this.state.charts[chartType];
+  if (chart && typeof chart.resize === 'function') {
+    chart.resize();
+    return true;
+  }
+  return false;
+}
+
+resizeAllCharts() {
+  Object.values(this.state.charts).forEach(chart => {
+    if (chart && typeof chart.resize === 'function') {
+      chart.resize();
+    }
+  });
 }

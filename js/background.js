@@ -374,6 +374,9 @@ function handleOfflineState() {
   chrome.action.setTitle({ title: "Offline ❌" });
   chrome.action.setBadgeText({ text: "!" });
   chrome.action.setBadgeBackgroundColor({ color: "#d93025" });
+
+  chrome.storage.local.remove('onlineStartTime'); // ⬅️ Reset uptime tracker
+
   logFailure();
   failureCount++;
 

@@ -13,14 +13,14 @@
   <button class="toggle-dark" id="toggleDarkBtn" aria-label="Toggle dark mode">🌓</button>
 
   <div class="dashboard-container">
-    <!-- Header Section -->
+    <!-- Header Section (Non-sortable) -->
     <header class="header">
       <h1>Wi-Fi Kickstart Dashboard</h1>
       <p>Network Diagnostics & Performance Monitoring</p>
     </header>
 
-    <!-- Real-time Status Cards -->
-    <section class="status-bar" aria-label="Current network metrics">
+    <!-- Real-time Status Cards (Sortable Section) -->
+    <section class="status-bar dashboard-section" aria-label="Current network metrics">
       <div class="status-card">
         <div class="status-value" id="currentLatency">--</div>
         <div class="status-label">Latency (ms)</div>
@@ -39,8 +39,8 @@
       </div>
     </section>
 
-    <!-- Control Buttons -->
-    <section class="controls" aria-label="Dashboard controls">
+    <!-- Control Buttons (Sortable Section) -->
+    <section class="controls dashboard-section" aria-label="Dashboard controls">
       <button id="runDiagnosticsBtn" class="btn btn-primary">
         <span class="btn-icon">🔍</span> Run Full Diagnostics
       </button>
@@ -52,8 +52,8 @@
       </button>
     </section>
 
-    <!-- Network Information Panel -->
-    <section class="network-info" aria-label="Network information">
+    <!-- Network Information Panel (Sortable Section) -->
+    <section class="network-info dashboard-section" aria-label="Network information">
       <h2>Network Information</h2>
       <div class="info-grid">
         <div class="info-item">
@@ -95,8 +95,8 @@
       </div>
     </section>
 
-    <!-- Charts Grid -->
-    <section class="charts-section" aria-label="Performance charts">
+    <!-- Charts Grid (Sortable Section) -->
+    <section class="charts-section dashboard-section" aria-label="Performance charts">
       <h2 class="section-title">Performance Analytics</h2>
       
       <div class="charts-grid">
@@ -174,8 +174,8 @@
       </div>
     </section>
 
-    <!-- Statistics Summary -->
-    <section class="stats-summary" aria-label="Statistics summary">
+    <!-- Statistics Summary (Sortable Section) -->
+    <section class="stats-summary dashboard-section" aria-label="Statistics summary">
       <h2 class="section-title">Session Statistics</h2>
       <div class="stats-grid">
         <div class="stat-item">
