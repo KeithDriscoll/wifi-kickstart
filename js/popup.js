@@ -99,20 +99,21 @@ class WiFiKickstartApp {
   }
 
   async requestConnectionCheck() {
-    try {
-      const response = await this.connectionManager.checkConnection();
-      const isOnline = response?.status === "online";
-      const status = isOnline ? "Online ✅" : "Offline ❌";
-      this.uiManager.updateStatus(`Status: ${status}`, isOnline);
-      
-      // Always collect data when checking connection
-      if (isOnline) {
-        this.runFullDiagnostics();
-      }
+  try {
+    const response = await this.connectionManager.checkConnection();
+    const isOnline = response?.status === "online";
+
+    if (isOnline) {
+      this.fetchOnlineDuration(); // ✅ Shows "Online for 5m 20s"
+      this.runFullDiagnostics();
+    } else {
+      this.uiManager.updateStatus("Offline ❌", false); // ⬅️ Clean format
+    }
     } catch (error) {
-      this.uiManager.updateStatus("Status: Error", false);
+    this.uiManager.updateStatus("Error ❌", false); // ⬅️ Clean format
     }
   }
+
 
   async fetchIPAddress() {
     try {
@@ -294,6 +295,24 @@ class WiFiKickstartApp {
       this.uiManager.updateWARPStatus({ success: false });
       this.uiManager.updateNetworkProvider({ success: false });
     }
+  }
+ async fetchOnlineDuration() {
+  chrome.storage.local.get(['onlineStartTime'], (data) => {
+    if (data.onlineStartTime) {
+      const now = Date.now();
+      const durationMs = now - data.onlineStartTime;
+
+      const totalSeconds = Math.floor(durationMs / 1000);
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+
+      const durationStr = `${minutes}m ${seconds}s`;
+
+      this.uiManager.updateStatus(`Online for ${durationStr}`, true, true);
+      } else {
+      this.uiManager.updateStatus("Online ✅", true);
+      }
+    });
   }
 }
 

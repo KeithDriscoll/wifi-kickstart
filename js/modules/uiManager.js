@@ -28,13 +28,22 @@ export class UIManager {
     return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   }
 
-  updateStatus(text, isOnline) {
+updateStatus(text, isOnline, suppressTimestamp = false) {
+  const emoji = isOnline ? "✅" : "❌";
+  const message = suppressTimestamp
+    ? `${text} ${emoji}`
+    : `${text} (${this.getTimestamp()}) ${emoji}`;
+
     if (this.elements.status) {
-      this.elements.status.textContent = `${text} (${this.getTimestamp()})`;
+      this.elements.status.textContent = message;
     }
-    chrome.action.setBadgeText({ text: isOnline ? "✓" : "!" });
-    chrome.action.setBadgeBackgroundColor({ color: isOnline ? "#28a745" : "#d93025" });
+
+  chrome.action.setBadgeText({ text: isOnline ? "✓" : "!" });
+  chrome.action.setBadgeBackgroundColor({ color: isOnline ? "#28a745" : "#d93025" });
   }
+
+
+
 
   updateIPAddress(ipData) {
     if (!this.elements.ip) return;

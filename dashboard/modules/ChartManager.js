@@ -143,23 +143,16 @@ class ChartManager {
       }
     );
     
-    // Provider Chart (Doughnut)
+    // Provider Chart (Doughnut) - Fixed to handle empty data
     this.state.charts.provider = new Chart(
       document.getElementById('providerChart'),
       {
         type: 'doughnut',
         data: {
-          labels: [],
+          labels: ['No data yet'],
           datasets: [{
-            data: [],
-            backgroundColor: [
-              '#0078d4',
-              '#28a745',
-              '#f9a825',
-              '#d93025',
-              '#9333ea',
-              '#17a2b8'
-            ],
+            data: [1],
+            backgroundColor: ['#cccccc'],
             borderWidth: 0,
             hoverOffset: 10
           }]
@@ -175,6 +168,16 @@ class ChartManager {
                 padding: 10,
                 font: {
                   size: 11
+                }
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  if (context.label === 'No data yet') {
+                    return 'Run diagnostics to collect provider data';
+                  }
+                  return context.label + ': ' + context.parsed + ' connections';
                 }
               }
             }
@@ -278,12 +281,12 @@ class ChartManager {
         data: {
           labels: ['Excellent', 'Good', 'Fair', 'Poor'],
           datasets: [{
-            data: [0, 0, 0, 0],
+            data: [0, 0, 0, 1],
             backgroundColor: [
               '#28a745',
               '#17a2b8',
               '#f9a825',
-              '#d93025'
+              '#cccccc'
             ],
             borderWidth: 2,
             borderColor: '#fff',
@@ -301,6 +304,18 @@ class ChartManager {
                 padding: 15,
                 font: {
                   size: 11
+                }
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const label = context.label || '';
+                  const value = context.parsed;
+                  if (value === 0) {
+                    return label + ': No data';
+                  }
+                  return label + ': ' + value + ' measurements';
                 }
               }
             }
@@ -333,11 +348,46 @@ class ChartManager {
       charts.speed.update('none');
     }
     
-    // Update Provider Chart
+    // Update Provider Chart - Fixed to handle Map properly
     if (charts.provider && data.providerHistory) {
-      const providers = Array.from(data.providerHistory.entries());
-      charts.provider.data.labels = providers.map(p => p[0]);
-      charts.provider.data.datasets[0].data = providers.map(p => p[1]);
+      let providers = [];
+      
+      // Handle both Map and array formats
+      if (data.providerHistory instanceof Map) {
+        providers = Array.from(data.providerHistory.entries());
+      } else if (Array.isArray(data.providerHistory)) {
+        providers = data.providerHistory;
+      }
+      
+      if (providers.length > 0) {
+        // Sort providers by count (descending) and take top 6
+        providers.sort((a, b) => b[1] - a[1]);
+        const topProviders = providers.slice(0, 6);
+        
+        charts.provider.data.labels = topProviders.map(p => {
+          // Shorten long provider names
+          const name = p[0];
+          return name.length > 20 ? name.substring(0, 20) + '...' : name;
+        });
+        charts.provider.data.datasets[0].data = topProviders.map(p => p[1]);
+        
+        // Update colors
+        const colors = [
+          '#0078d4',
+          '#28a745',
+          '#f9a825',
+          '#d93025',
+          '#9333ea',
+          '#17a2b8'
+        ];
+        charts.provider.data.datasets[0].backgroundColor = colors.slice(0, topProviders.length);
+      } else {
+        // No provider data yet
+        charts.provider.data.labels = ['No data yet'];
+        charts.provider.data.datasets[0].data = [1];
+        charts.provider.data.datasets[0].backgroundColor = ['#cccccc'];
+      }
+      
       charts.provider.update('none');
     }
     
@@ -358,7 +408,26 @@ class ChartManager {
     // Update Quality Distribution
     if (charts.quality) {
       const distribution = this.calculateQualityDistribution();
-      charts.quality.data.datasets[0].data = distribution;
+      const hasData = distribution.some(v => v > 0);
+      
+      if (hasData) {
+        charts.quality.data.datasets[0].data = distribution;
+        charts.quality.data.datasets[0].backgroundColor = [
+          '#28a745',
+          '#17a2b8',
+          '#f9a825',
+          '#d93025'
+        ];
+      } else {
+        // Show placeholder when no data
+        charts.quality.data.datasets[0].data = [0, 0, 0, 1];
+        charts.quality.data.datasets[0].backgroundColor = [
+          '#28a745',
+          '#17a2b8',
+          '#f9a825',
+          '#cccccc'
+        ];
+      }
       charts.quality.update('none');
     }
   }
