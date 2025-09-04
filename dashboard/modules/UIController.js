@@ -1,6 +1,6 @@
 /**
- * UI Controller with Theme Sync
- * Handles all UI interactions and updates with popup theme synchronization
+ * Enhanced UI Controller with Status Card Spinners and Menu Integration
+ * Handles all UI interactions with loading states and menu controls
  */
 
 class UIController {
@@ -32,6 +32,59 @@ class UIController {
       e.preventDefault();
       this.exportData();
     });
+  }
+  
+  // Show spinners in status cards during diagnostics
+  showDiagnosticsLoading() {
+    const statusCards = {
+      currentLatency: 'Measuring...',
+      currentSpeed: 'Testing...',
+      currentJitter: 'Calculating...',
+      networkScore: 'Analyzing...'
+    };
+    
+    Object.entries(statusCards).forEach(([elementId, loadingText]) => {
+      const element = document.getElementById(elementId);
+      if (element) {
+        element.innerHTML = `<span class="status-spinner"></span>${loadingText}`;
+        element.closest('.status-card')?.removeAttribute('data-status');
+      }
+    });
+  }
+  
+  // Hide spinners and restore normal status
+  hideDiagnosticsLoading() {
+    const statusElements = ['currentLatency', 'currentSpeed', 'currentJitter', 'networkScore'];
+    
+    statusElements.forEach(elementId => {
+      const element = document.getElementById(elementId);
+      if (element) {
+        // Remove spinner and restore normal display
+        element.innerHTML = element.textContent || '--';
+      }
+    });
+  }
+  
+  // Update individual status card with proper handling
+  updateStatusCard(elementId, value, suffix = '', status = null) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+    
+    // Clear any existing spinner
+    const spinner = element.querySelector('.status-spinner');
+    if (spinner) {
+      spinner.remove();
+    }
+    
+    if (value === null || value === undefined) {
+      element.textContent = '--';
+      element.closest('.status-card')?.removeAttribute('data-status');
+    } else {
+      element.textContent = value + suffix;
+      if (status) {
+        element.closest('.status-card')?.setAttribute('data-status', status);
+      }
+    }
   }
   
   initializeDashboardThemes() {
@@ -185,8 +238,14 @@ class UIController {
     btn.disabled = true;
     btn.innerHTML = '<span class="btn-icon">⏳</span> Running...';
     
+    // Show loading spinners in status cards
+    this.showDiagnosticsLoading();
+    
     try {
       chrome.runtime.sendMessage({ action: 'runFullDiagnostics' }, (response) => {
+        // Hide loading spinners
+        this.hideDiagnosticsLoading();
+        
         if (chrome.runtime.lastError) {
           this.showError('Extension communication error');
           btn.innerHTML = '<span class="btn-icon">🔍</span> Run Full Diagnostics';
@@ -205,6 +264,7 @@ class UIController {
         btn.disabled = false;
       });
     } catch (error) {
+      this.hideDiagnosticsLoading();
       console.error('Diagnostics error:', error);
       this.showError('Failed to run diagnostics');
       btn.innerHTML = '<span class="btn-icon">🔍</span> Run Full Diagnostics';
@@ -219,12 +279,19 @@ class UIController {
     btn.disabled = true;
     btn.innerHTML = '<span class="btn-icon">⏳</span> Testing...';
     
+    // Show spinner only for speed card
+    const speedElement = document.getElementById('currentSpeed');
+    if (speedElement) {
+      speedElement.innerHTML = '<span class="status-spinner"></span>Testing...';
+    }
+    
     try {
       chrome.runtime.sendMessage({ action: 'runSpeedTest' }, (response) => {
         if (chrome.runtime.lastError) {
           this.showError('Extension communication error');
           btn.innerHTML = '<span class="btn-icon">⚡</span> Speed Test Only';
           btn.disabled = false;
+          if (speedElement) speedElement.textContent = '--';
           return;
         }
         
@@ -233,6 +300,7 @@ class UIController {
           setTimeout(() => location.reload(), 2000);
         } else {
           this.showError('Speed test failed');
+          if (speedElement) speedElement.textContent = '--';
         }
         
         btn.innerHTML = '<span class="btn-icon">⚡</span> Speed Test Only';
@@ -243,6 +311,7 @@ class UIController {
       this.showError('Failed to run speed test');
       btn.innerHTML = '<span class="btn-icon">⚡</span> Speed Test Only';
       btn.disabled = false;
+      if (speedElement) speedElement.textContent = '--';
     }
   }
   
@@ -332,21 +401,6 @@ class UIController {
     
     // Update statistics
     this.updateStatistics();
-  }
-  
-  updateStatusCard(elementId, value, suffix = '', status = null) {
-    const element = document.getElementById(elementId);
-    if (!element) return;
-    
-    if (value === null || value === undefined) {
-      element.textContent = '--';
-      element.closest('.status-card')?.removeAttribute('data-status');
-    } else {
-      element.textContent = value + suffix;
-      if (status) {
-        element.closest('.status-card')?.setAttribute('data-status', status);
-      }
-    }
   }
   
   updateStatistics() {

@@ -1,6 +1,6 @@
 /**
- * Enhanced Dashboard Manager with Sortable Charts and Sections
- * Adds drag-and-drop functionality and fullscreen support
+ * Enhanced Dashboard Manager with Control Menu and Status Spinners
+ * Integrates all new features into the main dashboard
  */
 
 // Enhanced Dashboard Manager
@@ -11,6 +11,7 @@ class DashboardManager {
     this.networkManager = null;
     this.uiController = null;
     this.sortableManager = null;
+    this.controlMenu = null;
     this.refreshInterval = null;
     this.uptimeInterval = null;
     this.modulesLoaded = false;
@@ -26,6 +27,7 @@ class DashboardManager {
       'modules/NetworkInfoManager.js',
       'modules/UIController.js',
       'modules/SortableManager.js',
+      'modules/DashboardControlMenu.js',
       'modules/utils.js'
     ];
     
@@ -73,10 +75,13 @@ class DashboardManager {
     this.networkManager = new NetworkInfoManager();
     this.uiController = new UIController(this.state, this.chartManager);
     this.sortableManager = new SortableManager(this.chartManager);
+    this.controlMenu = new DashboardControlMenu(this.sortableManager, this.chartManager);
     
     // Make managers globally available
     window.chartManager = this.chartManager;
     window.sortableManager = this.sortableManager;
+    window.controlMenu = this.controlMenu;
+    window.uiController = this.uiController;
     
     // Initialize components
     this.chartManager.initializeCharts();
@@ -424,6 +429,25 @@ class DashboardManager {
   injectStyles() {
     const style = document.createElement('style');
     style.textContent = `
+      /* Enhanced Dashboard Styles with Menu and Spinners */
+      
+      /* Status Card Spinners */
+      .status-spinner {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid var(--border-color);
+        border-top-color: var(--primary-color);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin-right: 8px;
+        vertical-align: middle;
+      }
+      
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+      
       /* Notification Styles */
       .notification {
         position: fixed;
@@ -646,10 +670,6 @@ class DashboardManager {
         animation: spin 0.8s linear infinite;
       }
       
-      @keyframes spin {
-        to { transform: rotate(360deg); }
-      }
-      
       /* Modal improvements */
       .modal.active {
         display: flex;
@@ -711,6 +731,10 @@ class DashboardManager {
     
     if (this.sortableManager) {
       this.sortableManager.destroy();
+    }
+    
+    if (this.controlMenu) {
+      this.controlMenu.destroy();
     }
   }
 }

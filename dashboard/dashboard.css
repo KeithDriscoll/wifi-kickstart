@@ -818,4 +818,793 @@ body {
   color: var(--primary-hover);
 }
 
+/* Dashboard Control Menu and Status Spinner Styles */
+
+/* ========================================
+   Status Card Spinners
+   ======================================== */
+.status-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border-color);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Status card loading state */
+.status-card.loading .status-value {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+/* ========================================
+   Dashboard Control Menu Toggle
+   ======================================== */
+.dashboard-menu-toggle {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  width: 50px;
+  height: 50px;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  font-size: 1.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-base);
+  z-index: 1100;
+  box-shadow: 0 4px 20px rgba(0, 120, 212, 0.3);
+}
+
+.dashboard-menu-toggle:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 25px rgba(0, 120, 212, 0.4);
+}
+
+.dashboard-menu-toggle.active {
+  background: var(--error-color);
+  transform: rotate(90deg);
+}
+
+/* ========================================
+   Dashboard Control Menu
+   ======================================== */
+.dashboard-control-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 280px;
+  height: 100vh;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-color);
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  z-index: 1200;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-control-menu.open {
+  transform: translateX(0);
+}
+
+/* Menu overlay */
+.dashboard-menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1150;
+  backdrop-filter: blur(2px);
+}
+
+/* ========================================
+   Menu Header
+   ======================================== */
+.menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-lg) var(--spacing-md);
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-primary);
+}
+
+.menu-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.menu-close {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  cursor: pointer;
+  color: var(--text-secondary);
+  padding: 4px;
+  border-radius: 4px;
+  transition: all var(--transition-fast);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.menu-close:hover {
+  background: var(--error-color);
+  color: white;
+}
+
+/* ========================================
+   Menu Content
+   ======================================== */
+.menu-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-md);
+}
+
+.menu-section {
+  margin-bottom: var(--spacing-lg);
+}
+
+.menu-section h4 {
+  margin: 0 0 var(--spacing-md) 0;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.menu-controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.menu-divider {
+  border: none;
+  border-top: 1px solid var(--border-color);
+  margin: var(--spacing-lg) 0;
+}
+
+/* ========================================
+   Menu Toggles (Pill Switches)
+   ======================================== */
+.menu-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-sm) var(--spacing-xs);
+  border-radius: var(--radius-md);
+  transition: background-color var(--transition-fast);
+}
+
+.menu-toggle:hover {
+  background: var(--bg-primary);
+}
+
+.toggle-label {
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  font-weight: 500;
+  flex: 1;
+  cursor: pointer;
+}
+
+/* Pill Switch Component */
+.pill-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.pill-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.pill-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--border-color);
+  border-radius: 24px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.pill-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  top: 3px;
+  left: 3px;
+  background-color: white;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.pill-switch input:checked + .pill-slider {
+  background-color: var(--primary-color);
+}
+
+.pill-switch input:checked + .pill-slider:before {
+  transform: translateX(20px);
+}
+
+.pill-switch input:focus + .pill-slider {
+  box-shadow: 0 0 0 2px var(--primary-color);
+}
+
+/* ========================================
+   Menu Actions
+   ======================================== */
+.menu-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.menu-action-btn {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.menu-action-btn:hover {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+  transform: translateY(-1px);
+}
+
+.menu-action-btn:active {
+  transform: translateY(0);
+}
+
+/* Specific action button colors */
+.menu-action-btn#resetLayoutBtn:hover {
+  background: var(--warning-color);
+  border-color: var(--warning-color);
+}
+
+.menu-action-btn#hideAllChartsBtn:hover {
+  background: var(--error-color);
+  border-color: var(--error-color);
+}
+
+/* ========================================
+   Dashboard Notifications (Menu specific)
+   ======================================== */
+.dashboard-notification {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 2000;
+  font-weight: 500;
+  color: white;
+  animation: slideDown 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.dashboard-notification.notification-success { 
+  background: var(--success-color); 
+}
+
+.dashboard-notification.notification-error { 
+  background: var(--error-color); 
+}
+
+.dashboard-notification.notification-info { 
+  background: var(--primary-color); 
+}
+
+.dashboard-notification.fade-out { 
+  animation: slideUp 0.3s ease; 
+}
+
+/* ========================================
+   Dark Mode Support
+   ======================================== */
+html.dark .dashboard-menu-toggle {
+  background: var(--primary-color);
+  box-shadow: 0 4px 20px rgba(180, 140, 255, 0.3);
+}
+
+html.dark .dashboard-menu-toggle:hover {
+  box-shadow: 0 6px 25px rgba(180, 140, 255, 0.4);
+}
+
+html.dark .dashboard-control-menu {
+  background: var(--bg-secondary);
+  border-right-color: var(--border-color);
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.4);
+}
+
+html.dark .status-spinner {
+  border-color: var(--border-color);
+  border-top-color: var(--primary-color);
+}
+
+/* ========================================
+   Responsive Design
+   ======================================== */
+@media (max-width: 768px) {
+  .dashboard-control-menu {
+    width: 100%;
+    max-width: 320px;
+  }
+  
+  .dashboard-menu-toggle {
+    top: 10px;
+    left: 10px;
+    width: 44px;
+    height: 44px;
+    font-size: 1.2rem;
+  }
+  
+  .menu-content {
+    padding: var(--spacing-sm);
+  }
+  
+  .menu-toggle {
+    padding: var(--spacing-sm);
+  }
+  
+  .toggle-label {
+    font-size: 0.85rem;
+  }
+}
+
+/* ========================================
+   Accessibility
+   ======================================== */
+.pill-switch input:focus + .pill-slider {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+.menu-action-btn:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+.dashboard-menu-toggle:focus {
+  outline: 2px solid white;
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .pill-slider {
+    border: 2px solid var(--text-primary);
+  }
+  
+  .menu-action-btn {
+    border-width: 2px;
+  }
+}
+
+/* Fixed Pill Slider CSS - Add this to your dashboard.css */
+
+/* ========================================
+   Dashboard Control Menu - Fixed Pill Sliders
+   ======================================== */
+
+/* Dashboard Control Menu Toggle */
+.dashboard-menu-toggle {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  width: 50px;
+  height: 50px;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  z-index: 1100;
+  box-shadow: 0 4px 20px rgba(0, 120, 212, 0.3);
+}
+
+.dashboard-menu-toggle:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 25px rgba(0, 120, 212, 0.4);
+}
+
+.dashboard-menu-toggle.active {
+  background: var(--error-color);
+  transform: rotate(90deg);
+}
+
+/* Dashboard Control Menu */
+.dashboard-control-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 280px;
+  height: 100vh;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-color);
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  z-index: 1200;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-control-menu.open {
+  transform: translateX(0);
+}
+
+/* Menu overlay */
+.dashboard-menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1150;
+  backdrop-filter: blur(2px);
+}
+
+/* Menu Header */
+.menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 16px;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-primary);
+}
+
+.menu-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.menu-close {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  cursor: pointer;
+  color: var(--text-secondary);
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.menu-close:hover {
+  background: var(--error-color);
+  color: white;
+}
+
+/* Menu Content */
+.menu-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.menu-section {
+  margin-bottom: 24px;
+}
+
+.menu-section h4 {
+  margin: 0 0 16px 0;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.menu-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.menu-divider {
+  border: none;
+  border-top: 1px solid var(--border-color);
+  margin: 24px 0;
+}
+
+/* Menu Toggles - FIXED PILL SWITCHES */
+.menu-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 4px;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+  min-height: 40px;
+}
+
+.menu-toggle:hover {
+  background: var(--bg-primary);
+}
+
+.toggle-label {
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  font-weight: 500;
+  flex: 1;
+  cursor: pointer;
+  margin-right: 12px;
+}
+
+/* FIXED: Pill Switch Component */
+.pill-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.pill-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.pill-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  border-radius: 24px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.pill-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  top: 3px;
+  left: 3px;
+  background-color: white;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* CRITICAL: Active state styles */
+.pill-switch input:checked + .pill-slider {
+  background-color: var(--primary-color) !important;
+}
+
+.pill-switch input:checked + .pill-slider:before {
+  transform: translateX(20px) !important;
+}
+
+.pill-switch input:focus + .pill-slider {
+  box-shadow: 0 0 0 2px var(--primary-color);
+}
+
+/* Hover effects */
+.pill-slider:hover {
+  background-color: #bbb;
+}
+
+.pill-switch input:checked + .pill-slider:hover {
+  background-color: var(--primary-hover) !important;
+}
+
+/* Menu Actions */
+.menu-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.menu-action-btn {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.menu-action-btn:hover {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+  transform: translateY(-1px);
+}
+
+.menu-action-btn:active {
+  transform: translateY(0);
+}
+
+/* Specific action button colors */
+.menu-action-btn#resetLayoutBtn:hover {
+  background: var(--warning-color);
+  border-color: var(--warning-color);
+}
+
+.menu-action-btn#hideAllChartsBtn:hover {
+  background: var(--error-color);
+  border-color: var(--error-color);
+}
+
+/* Dashboard Notifications */
+.dashboard-notification {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 16px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 2000;
+  font-weight: 500;
+  color: white;
+  animation: slideDown 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.dashboard-notification.notification-success { 
+  background: var(--success-color); 
+}
+
+.dashboard-notification.notification-error { 
+  background: var(--error-color); 
+}
+
+.dashboard-notification.notification-info { 
+  background: var(--primary-color); 
+}
+
+.dashboard-notification.fade-out { 
+  animation: slideUp 0.3s ease; 
+}
+
+/* Dark Mode Support */
+html.dark .dashboard-menu-toggle {
+  background: var(--primary-color);
+  box-shadow: 0 4px 20px rgba(180, 140, 255, 0.3);
+}
+
+html.dark .dashboard-menu-toggle:hover {
+  box-shadow: 0 6px 25px rgba(180, 140, 255, 0.4);
+}
+
+html.dark .dashboard-control-menu {
+  background: var(--bg-secondary);
+  border-right-color: var(--border-color);
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.4);
+}
+
+html.dark .pill-slider {
+  background-color: #555 !important;
+}
+
+html.dark .pill-slider:hover {
+  background-color: #666 !important;
+}
+
+html.dark .pill-switch input:checked + .pill-slider {
+  background-color: var(--primary-color) !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .dashboard-control-menu {
+    width: 100%;
+    max-width: 320px;
+  }
+  
+  .dashboard-menu-toggle {
+    top: 10px;
+    left: 10px;
+    width: 44px;
+    height: 44px;
+    font-size: 1.2rem;
+  }
+  
+  .menu-content {
+    padding: 12px;
+  }
+  
+  .menu-toggle {
+    padding: 8px;
+  }
+  
+  .toggle-label {
+    font-size: 0.85rem;
+  }
+}
+
+/* Accessibility */
+.pill-switch input:focus + .pill-slider {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+.menu-action-btn:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+.dashboard-menu-toggle:focus {
+  outline: 2px solid white;
+  outline-offset: 2px;
+}
 /* ========================================
