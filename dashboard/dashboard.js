@@ -3,13 +3,6 @@
  * Coordinates all dashboard modules
  */
 
-// Load all modules
-document.write('<script src="modules/DashboardState.js"></script>');
-document.write('<script src="modules/ChartManager.js"></script>');
-document.write('<script src="modules/NetworkInfoManager.js"></script>');
-document.write('<script src="modules/UIController.js"></script>');
-document.write('<script src="modules/utils.js"></script>');
-
 // Dashboard Manager (Main Controller)
 class DashboardManager {
   constructor() {
@@ -19,10 +12,48 @@ class DashboardManager {
     this.uiController = null;
     this.refreshInterval = null;
     this.uptimeInterval = null;
+    this.modulesLoaded = false;
+  }
+  
+  async loadModules() {
+    // Load modules dynamically
+    const modules = [
+      'modules/DashboardState.js',
+      'modules/ChartManager.js',
+      'modules/NetworkInfoManager.js',
+      'modules/UIController.js',
+      'modules/utils.js'
+    ];
+    
+    try {
+      for (const module of modules) {
+        await this.loadScript(module);
+      }
+      this.modulesLoaded = true;
+      console.log('All modules loaded successfully');
+    } catch (error) {
+      console.error('Failed to load modules:', error);
+      throw error;
+    }
+  }
+  
+  loadScript(src) {
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = src;
+      script.onload = resolve;
+      script.onerror = () => reject(new Error(`Failed to load ${src}`));
+      document.head.appendChild(script);
+    });
   }
   
   async initialize() {
     console.log('Dashboard initializing...');
+    
+    // Load modules first
+    if (!this.modulesLoaded) {
+      await this.loadModules();
+    }
     
     // Initialize state
     this.state = new DashboardState();
@@ -228,17 +259,26 @@ class DashboardManager {
 }
 
 // Initialize Dashboard on DOM Ready
-document.addEventListener('DOMContentLoaded', () => {
-  // Create and initialize dashboard
-  window.dashboard = new DashboardManager();
-  window.dashboard.initialize();
-  
-  // Handle page unload
-  window.addEventListener('beforeunload', () => {
-    if (window.dashboard) {
-      window.dashboard.destroy();
-    }
-  });
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    // Create and initialize dashboard
+    window.dashboard = new DashboardManager();
+    await window.dashboard.initialize();
+    
+    // Handle page unload
+    window.addEventListener('beforeunload', () => {
+      if (window.dashboard) {
+        window.dashboard.destroy();
+      }
+    });
+  } catch (error) {
+    console.error('Failed to initialize dashboard:', error);
+    // Show error to user
+    document.getElementById('currentLatency').textContent = 'Load Error';
+    document.getElementById('currentSpeed').textContent = 'Load Error';
+    document.getElementById('currentJitter').textContent = 'Load Error';
+    document.getElementById('networkScore').textContent = 'Load Error';
+  }
 });
 
 // Export for testing/debugging (if needed)

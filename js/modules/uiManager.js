@@ -209,32 +209,43 @@ export class UIManager {
 
   // Utility methods for metrics
   getJitterMetrics(jitter) {
-    if (jitter > 100) {
-      return { color: "#d93025", emoji: "🔴", tooltip: "Poor stability — expect stuttering" };
-    } else if (jitter > 30) {
-      return { color: "#f9a825", emoji: "🟡", tooltip: "Acceptable stability" };
+    if (jitter < 5) {
+      return { color: "#28a745", emoji: "🎯", tooltip: "Excellent stability" };
+    } else if (jitter < 15) {
+      return { color: "#ffc107", emoji: "⚡", tooltip: "Good stability" };
+    } else if (jitter < 30) {
+      return { color: "#ff9800", emoji: "⚠️", tooltip: "Moderate instability" };
     } else {
-      return { color: "#28a745", emoji: "🟢", tooltip: "Excellent stability" };
+      return { color: "#f44336", emoji: "❌", tooltip: "High instability - may affect real-time apps" };
     }
   }
 
   getSpeedMetrics(speed) {
-    if (speed < 5) {
-      return { emoji: "🐢", color: "#d93025", tooltip: "Slow connection" };
-    } else if (speed < 20) {
-      return { emoji: "🚶", color: "#f9a825", tooltip: "Moderate speed" };
-    } else {
-      return { emoji: "🚀", color: "#28a745", tooltip: "Fast connection" };
-    }
+  if (speed < 2) {
+    return { emoji: "🐌", color: "#d93025", tooltip: "Very slow connection" };
+  } else if (speed < 5) {
+    return { emoji: "⚡", color: "#f57c00", tooltip: "Slow connection" };
+  } else if (speed < 15) {
+    return { emoji: "✅", color: "#f9a825", tooltip: "Moderate speed" };
+  } else if (speed < 30) {
+    return { emoji: "📶", color: "#34a853", tooltip: "Fast connection" };
+  } else {
+    return { emoji: "🚀", color: "#1e88e5", tooltip: "Very fast connection" };
   }
+}
+
 
   getScoreMetrics(score) {
-    if (score < 40) {
-      return { emoji: "⚠️", color: "#d93025", label: "Poor" };
-    } else if (score < 70) {
-      return { emoji: "📶", color: "#f9a825", label: "Fair" };
+    if (score >= 90) {
+      return { color: "#28a745", emoji: "🏆", label: "Excellent connection" };
+    } else if (score >= 70) {
+      return { color: "#17a2b8", emoji: "✅", label: "Good connection" };
+    } else if (score >= 50) {
+      return { color: "#ffc107", emoji: "⚡", label: "Fair connection" };
+    } else if (score >= 30) {
+      return { color: "#ff9800", emoji: "⚠️", label: "Poor connection" };
     } else {
-      return { emoji: "💯", color: "#28a745", label: "Excellent" };
+      return { color: "#f44336", emoji: "❌", label: "Very poor connection" };
     }
   }
 }
