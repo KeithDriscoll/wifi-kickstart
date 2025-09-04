@@ -4,21 +4,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Wi-Fi Kickstart Dashboard</title>
-  <script src="/libs/chart.umd.min.js"></script>
-  <script src="/libs/Sortable.min.js"></script>
+  
+  <!-- Dashboard Styles -->
   <link rel="stylesheet" href="dashboard.css">
 </head>
 <body>
-  <button class="toggle-dark" id="toggleDarkBtn">🌓</button>
+  <!-- Dark Mode Toggle -->
+  <button class="toggle-dark" id="toggleDarkBtn" aria-label="Toggle dark mode">🌓</button>
 
   <div class="dashboard-container">
-    <div class="header">
+    <!-- Header Section -->
+    <header class="header">
       <h1>Wi-Fi Kickstart Dashboard</h1>
       <p>Network Diagnostics & Performance Monitoring</p>
-    </div>
+    </header>
 
     <!-- Real-time Status Cards -->
-    <div class="status-bar">
+    <section class="status-bar" aria-label="Current network metrics">
       <div class="status-card">
         <div class="status-value" id="currentLatency">--</div>
         <div class="status-label">Latency (ms)</div>
@@ -35,86 +37,198 @@
         <div class="status-value" id="networkScore">--</div>
         <div class="status-label">Network Score</div>
       </div>
-    </div>
+    </section>
 
-    <!-- Controls -->
-    <div class="controls">
-      <button id="runDiagnosticsBtn">Run Full Diagnostics</button>
-      <button id="speedTestBtn">Speed Test Only</button>
-      <button id="clearHistoryBtn">Clear History</button>
-    </div>
+    <!-- Control Buttons -->
+    <section class="controls" aria-label="Dashboard controls">
+      <button id="runDiagnosticsBtn" class="btn btn-primary">
+        <span class="btn-icon">🔍</span> Run Full Diagnostics
+      </button>
+      <button id="speedTestBtn" class="btn btn-secondary">
+        <span class="btn-icon">⚡</span> Speed Test Only
+      </button>
+      <button id="clearHistoryBtn" class="btn btn-danger">
+        <span class="btn-icon">🗑️</span> Clear History
+      </button>
+    </section>
 
-    <!-- Network Information -->
-    <div class="network-info">
-      <h3>Network Information</h3>
+    <!-- Network Information Panel -->
+    <section class="network-info" aria-label="Network information">
+      <h2>Network Information</h2>
       <div class="info-grid">
         <div class="info-item">
           <div class="info-label">IP Address</div>
-          <div class="info-value" id="ipAddress">Loading...</div>
+          <div class="info-value" id="ipAddress">
+            <span class="loading-spinner"></span> Loading...
+          </div>
         </div>
         <div class="info-item">
           <div class="info-label">Location</div>
-          <div class="info-value" id="location">Loading...</div>
+          <div class="info-value" id="location">
+            <span class="loading-spinner"></span> Loading...
+          </div>
         </div>
         <div class="info-item">
           <div class="info-label">Provider</div>
-          <div class="info-value" id="provider">Loading...</div>
+          <div class="info-value" id="provider">
+            <span class="loading-spinner"></span> Loading...
+          </div>
         </div>
         <div class="info-item">
           <div class="info-label">WARP Status</div>
-          <div class="info-value" id="warpStatus">Checking...</div>
+          <div class="info-value" id="warpStatus">
+            <span class="loading-spinner"></span> Checking...
+          </div>
         </div>
         <div class="info-item">
           <div class="info-label">VPN Status</div>
-          <div class="info-value" id="vpnStatus">Detecting...</div>
+          <div class="info-value" id="vpnStatus">
+            <span class="loading-spinner"></span> Detecting...
+          </div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Connection Type</div>
+          <div class="info-value" id="connectionType">
+            <span class="loading-spinner"></span> Analyzing...
+          </div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- Charts -->
-    <div class="charts-grid">
-      <div class="chart-container">
-        <div class="chart-title">Network Performance Over Time</div>
-        <canvas id="performanceChart" class="chart-canvas"></canvas>
-      </div>
+    <!-- Charts Grid -->
+    <section class="charts-section" aria-label="Performance charts">
+      <h2 class="section-title">Performance Analytics</h2>
       
-      <div class="chart-container">
-        <div class="chart-title">Speed Test History</div>
-        <canvas id="speedChart" class="chart-canvas"></canvas>
+      <div class="charts-grid">
+        <!-- Performance Over Time -->
+        <div class="chart-container" data-chart="performance">
+          <div class="chart-header">
+            <h3 class="chart-title">Network Performance Over Time</h3>
+            <div class="chart-actions">
+              <button class="chart-btn" data-action="refresh" aria-label="Refresh chart">↻</button>
+              <button class="chart-btn" data-action="expand" aria-label="Expand chart">⛶</button>
+            </div>
+          </div>
+          <canvas id="performanceChart" class="chart-canvas"></canvas>
+        </div>
+        
+        <!-- Speed Test History -->
+        <div class="chart-container" data-chart="speed">
+          <div class="chart-header">
+            <h3 class="chart-title">Speed Test History</h3>
+            <div class="chart-actions">
+              <button class="chart-btn" data-action="refresh" aria-label="Refresh chart">↻</button>
+              <button class="chart-btn" data-action="expand" aria-label="Expand chart">⛶</button>
+            </div>
+          </div>
+          <canvas id="speedChart" class="chart-canvas"></canvas>
+        </div>
+        
+        <!-- Network Providers Distribution -->
+        <div class="chart-container" data-chart="provider">
+          <div class="chart-header">
+            <h3 class="chart-title">Network Providers</h3>
+            <div class="chart-actions">
+              <button class="chart-btn" data-action="refresh" aria-label="Refresh chart">↻</button>
+              <button class="chart-btn" data-action="expand" aria-label="Expand chart">⛶</button>
+            </div>
+          </div>
+          <canvas id="providerChart" class="chart-canvas"></canvas>
+        </div>
+        
+        <!-- Network Score Trend -->
+        <div class="chart-container" data-chart="score">
+          <div class="chart-header">
+            <h3 class="chart-title">Network Score Trend</h3>
+            <div class="chart-actions">
+              <button class="chart-btn" data-action="refresh" aria-label="Refresh chart">↻</button>
+              <button class="chart-btn" data-action="expand" aria-label="Expand chart">⛶</button>
+            </div>
+          </div>
+          <canvas id="scoreChart" class="chart-canvas"></canvas>
+        </div>
+        
+        <!-- Performance Distribution -->
+        <div class="chart-container" data-chart="distribution">
+          <div class="chart-header">
+            <h3 class="chart-title">Performance Distribution</h3>
+            <div class="chart-actions">
+              <button class="chart-btn" data-action="refresh" aria-label="Refresh chart">↻</button>
+              <button class="chart-btn" data-action="expand" aria-label="Expand chart">⛶</button>
+            </div>
+          </div>
+          <canvas id="performanceDistChart" class="chart-canvas"></canvas>
+        </div>
+        
+        <!-- Connection Quality -->
+        <div class="chart-container" data-chart="quality">
+          <div class="chart-header">
+            <h3 class="chart-title">Connection Quality Distribution</h3>
+            <div class="chart-actions">
+              <button class="chart-btn" data-action="refresh" aria-label="Refresh chart">↻</button>
+              <button class="chart-btn" data-action="expand" aria-label="Expand chart">⛶</button>
+            </div>
+          </div>
+          <canvas id="qualityChart" class="chart-canvas"></canvas>
+        </div>
       </div>
-      
-      <div class="chart-container">
-        <div class="chart-title">Network Providers</div>
-        <canvas id="providerChart" class="chart-canvas"></canvas>
+    </section>
+
+    <!-- Statistics Summary -->
+    <section class="stats-summary" aria-label="Statistics summary">
+      <h2 class="section-title">Session Statistics</h2>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-label">Average Latency</div>
+          <div class="stat-value" id="avgLatency">--</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Average Speed</div>
+          <div class="stat-value" id="avgSpeed">--</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Best Score</div>
+          <div class="stat-value" id="bestScore">--</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Uptime</div>
+          <div class="stat-value" id="uptime">--</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Data Points</div>
+          <div class="stat-value" id="dataPoints">0</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Last Updated</div>
+          <div class="stat-value" id="lastUpdated">Never</div>
+        </div>
       </div>
-      
-      <div class="chart-container">
-        <div class="chart-title">VPN Usage History</div>
-        <canvas id="vpnChart" class="chart-canvas"></canvas>
-      </div>
-      
-      <div class="chart-container">
-        <div class="chart-title">Performance Distribution</div>
-        <canvas id="performanceDistChart" class="chart-canvas"></canvas>
-      </div>
-      
-      <div class="chart-container">
-        <div class="chart-title">Connection Quality Distribution</div>
-        <canvas id="qualityChart" class="chart-canvas"></canvas>
-      </div>
-      
-      <div class="chart-container">
-        <div class="chart-title">Network Score Trend</div>
-        <canvas id="scoreChart" class="chart-canvas"></canvas>
-      </div>
-    </div>
+    </section>
 
     <!-- Footer -->
-    <div class="footer">
-      <span>Made with ❤️ in NYC</span>
-    </div>
+    <footer class="footer">
+      <div class="footer-content">
+        <span class="footer-text">Made with ❤️ in NYC</span>
+        <span class="footer-separator">•</span>
+        <span class="footer-version">v1.0.0</span>
+        <span class="footer-separator">•</span>
+        <a href="#" class="footer-link" id="exportData">Export Data</a>
+      </div>
+    </footer>
   </div>
 
-<script src="dashboard.js"></script>
+  <!-- Modal for expanded charts -->
+  <div id="chartModal" class="modal" aria-hidden="true">
+    <div class="modal-content">
+      <button class="modal-close" aria-label="Close modal">&times;</button>
+      <canvas id="modalChart"></canvas>
+    </div>
+  </div>
+  
+  <!-- External Libraries -->
+  <script src="/libs/chart.umd.min.js"></script>
+  <script src="/libs/Sortable.min.js"></script>
+  <!-- Dashboard JavaScript -->
+  <script src="dashboard.js"></script>
 </body>
 </html>
