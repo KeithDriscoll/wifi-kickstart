@@ -5,6 +5,7 @@ import { UIManager } from './modules/uiManager.js';
 import { ThemeManager } from './modules/themeManager.js';
 import { SettingsManager } from './modules/settingsManager.js';
 import { DashboardManager } from './modules/dashboardManager.js';
+import { EnhancedSpeedTestIntegration } from './modules/speedTest/EnhancedSpeedTestIntegration.js';
 
 class WiFiKickstartApp {
   constructor() {
