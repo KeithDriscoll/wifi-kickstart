@@ -268,7 +268,11 @@ class DashboardControlMenu {
           const section = document.querySelector(selector);
           if (section) {
             const isVisible = e.target.checked;
-            section.style.display = isVisible ? 'block' : 'none';
+            if (isVisible) {
+              section.style.display = ''; // Remove inline style, let CSS take over
+            } else {
+              section.style.display = 'none'; // Only set none when hiding
+            }
             this.saveSectionVisibility(id, isVisible);
             this.showNotification(`${name} ${isVisible ? 'shown' : 'hidden'}`, 'info', 1000);
             console.log(`${name} ${isVisible ? 'shown' : 'hidden'}`);
@@ -464,7 +468,12 @@ class DashboardControlMenu {
             if (selector) {
               const section = document.querySelector(selector);
               if (section) {
-                section.style.display = isVisible ? 'block' : 'none';
+                // FIXED CODE:
+if (isVisible) {
+  section.style.display = ''; // Let CSS handle the display
+} else {
+  section.style.display = 'none'; // Only force none when hidden
+}
                 console.log(`Applied visibility for ${selector}: ${isVisible}`);
               }
             }

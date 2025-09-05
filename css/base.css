@@ -14,17 +14,30 @@
   --shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
-/* Dark mode variables */
+/* Dark Theme - UPDATED for consistency with dashboard */
 html.dark {
-  --bg-primary: #1a0e2a !important;
-  --bg-secondary: #2b1850 !important;
+  /* Background Colors - Now consistent with dashboard */
+  --bg-primary: #0f0a1a !important;
+  --bg-secondary: #1a1330 !important;
+  --bg-tertiary: #241840 !important;
+  
+  /* Text Colors */
   --text-primary: #e0d7f5 !important;
-  --text-secondary: #aaa !important;
+  --text-secondary: #b3a3d0 !important;
+  --text-tertiary: #8b7aa3 !important;
+  
+  /* Brand Colors */
   --primary-color: #b48cff !important;
-  --border-color: #444 !important;
+  --primary-hover: #9a6fe8 !important;
+  
+  /* UI Colors */
+  --border-color: #3a2e50 !important;
+  --border-light: #2d2340 !important;
   --switch-bg: #555 !important;
   --switch-active: #6a3fc9 !important;
-  --shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  
+  /* Enhanced Shadows for dark mode */
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
 }
 
 /* Base layout */
