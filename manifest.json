@@ -14,10 +14,12 @@
     "http://neverssl.com/*",
     "https://ipinfo.io/*",
     "https://download.thinkbroadband.com/*",
-    "https://www.cloudflare.com/*",
-    "https://cdnjs.cloudflare.com/*",
     "https://ipqualityscore.com/*",
-    "https://ipapi.co/*"
+    "https://ipapi.co/*",
+    "https://speed.cloudflare.com/*",
+    "https://*.cloudflare.com/*",
+    "https://www.cloudflare.com/*",
+    "https://cdnjs.cloudflare.com/*"
   ],
  
   "background": {
@@ -40,6 +42,8 @@
   "web_accessible_resources": [
     {
       "resources": [
+        "speedtest-dashboard.html",
+        "dashboard/*",
         "dashboard/dashboard.html", 
         "dashboard/dashboard.css", 
         "dashboard/dashboard.js",

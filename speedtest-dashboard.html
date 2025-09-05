@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Epic Speed Test Dashboard</title>
+    <style>
+        
+    </style>
+</head>
+<body>
+    <!-- Epic Speed Test Dashboard Overlay -->
+    <div class="speedtest-overlay" id="speedtestDashboard">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <div class="dashboard-title">
+                <span class="title-icon">⚡</span>
+                Network Analysis Suite
+            </div>
+            <button class="close-btn" id="closeDashboard">✕</button>
+        </div>
+
+        <!-- Main Content -->
+        <div class="dashboard-content">
+            <!-- Left Panel - Speedometer -->
+            <div class="speedometer-panel">
+                <div class="speedometer glow">
+                    <div class="speedometer-bg">
+                        <div class="speedometer-inner">
+                            <div class="speed-value" id="speedValue">0</div>
+                            <div class="speed-unit">Mbps</div>
+                            <div class="speed-needle" id="speedNeedle"></div>
+                            <div class="needle-center"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="test-status" id="testStatus">Ready to test your connection</div>
+
+                <!-- Progress Bars -->
+                <div class="progress-container">
+                    <div class="progress-item">
+                        <div class="progress-label">
+                            <span>Download Speed</span>
+                            <span id="downloadProgress">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="downloadBar"></div>
+                        </div>
+                    </div>
+                    <div class="progress-item">
+                        <div class="progress-label">
+                            <span>Upload Speed</span>
+                            <span id="uploadProgress">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="uploadBar"></div>
+                        </div>
+                    </div>
+                    <div class="progress-item">
+                        <div class="progress-label">
+                            <span>Latency Test</span>
+                            <span id="latencyProgress">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="latencyBar"></div>
+                        </div>
+                    </div>
+                    <div class="progress-item">
+                        <div class="progress-label">
+                            <span>Advanced Tests</span>
+                            <span id="advancedProgress">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="advancedBar"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Control Buttons -->
+                <div class="control-buttons">
+                    <button class="control-btn primary-btn" id="startTest">Start Test</button>
+                    <button class="control-btn secondary-btn" id="shareResults">Share Results</button>
+                </div>
+            </div>
+
+            <!-- Right Panel - AI Insights -->
+            <div class="insights-panel">
+                <div class="insights-header">
+                    🤖 AI Network Analysis
+                </div>
+
+                <div id="aiInsights">
+                    <div class="ai-insight">
+                        🔍 <strong>Initial Analysis:</strong> Preparing comprehensive network diagnostics...
+                    </div>
+                </div>
+
+                <!-- Capability Grid -->
+                <div class="capability-grid" id="capabilityGrid">
+                    <div class="capability-card loading">
+                        <span class="capability-icon">🎮</span>
+                        <div class="capability-label">Gaming</div>
+                    </div>
+                    <div class="capability-card loading">
+                        <span class="capability-icon">📺</span>
+                        <div class="capability-label">4K Streaming</div>
+                    </div>
+                    <div class="capability-card loading">
+                        <span class="capability-icon">📹</span>
+                        <div class="capability-label">Video Calls</div>
+                    </div>
+                    <div class="capability-card loading">
+                        <span class="capability-icon">💼</span>
+                        <div class="capability-label">Work</div>
+                    </div>
+                </div>
+
+                <!-- Network Score -->
+                <div class="network-score">
+                    <div class="score-value" id="networkScore">--</div>
+                    <div class="score-grade" id="networkGrade">Analyzing...</div>
+                    <div class="score-description" id="scoreDescription">Running comprehensive network analysis</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+</body>
+</html>

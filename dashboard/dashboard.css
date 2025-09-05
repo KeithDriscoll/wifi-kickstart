@@ -14,3 +14,4 @@
 @import url('styles/modal.css');
 @import url('styles/utilities.css');
 @import url('styles/responsive.css');
+@import url('../speedtest-dashboard.css'); /* ADD THIS LINE */

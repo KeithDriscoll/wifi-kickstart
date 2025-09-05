@@ -108,7 +108,7 @@ export class EnhancedSpeedTestIntegration {
     const speedElement = document.getElementById('speedSimple') || document.getElementById('speed');
     if (speedElement) {
       speedElement.textContent = 'Test failed';
-      style.color = '#d93025';
+      speedElement.style.color = '#d93025';
     }
 
     // Show error notification

@@ -52,6 +52,49 @@ class DashboardManager {
       document.head.appendChild(script);
     });
   }
+
+  async initializeEpicSpeedTest() {
+  // Load the epic speed test dashboard
+  try {
+    const epicBtn = document.getElementById('epicSpeedTestBtn');
+    if (epicBtn) {
+      epicBtn.addEventListener('click', () => {
+        this.openEpicSpeedTest();
+      });
+    }
+    
+    // Load the enhanced speed test integration
+    const { EnhancedSpeedTestIntegration } = await import('../js/modules/speedTest/EnhancedSpeedTestIntegration.js');
+    this.enhancedSpeedTest = new EnhancedSpeedTestIntegration();
+    await this.enhancedSpeedTest.initialize();
+    
+    console.log('Epic Speed Test initialized in dashboard!');
+  } catch (error) {
+    console.error('Failed to initialize epic speed test:', error);
+  }
+}
+async openEpicSpeedTest() {
+  // Load and show the epic dashboard overlay
+  if (!window.epicDashboard) {
+    // Load the epic dashboard code
+    const script = document.createElement('script');
+    script.src = chrome.runtime.getURL('js/speedtest-dashboard.js');
+    document.head.appendChild(script);
+    
+    // Wait for it to load
+    await new Promise(resolve => setTimeout(resolve, 500));
+  }
+  
+  // Open the epic dashboard
+  if (window.epicDashboard) {
+    window.epicDashboard.open();
+    
+    // Connect it to our enhanced speed test
+    if (this.enhancedSpeedTest) {
+      window.epicDashboard.connectToEnhancedSpeedTest(this.enhancedSpeedTest);
+    }
+  }
+}
   
   async initialize() {
     console.log('Dashboard initializing...');
@@ -63,6 +106,7 @@ class DashboardManager {
     
     // Initialize state
     this.state = new DashboardState();
+    await this.initializeEpicSpeedTest();
     
     // Check extension availability
     if (!this.state.isExtensionAvailable) {

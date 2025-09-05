@@ -1,0 +1,443 @@
+/* Epic Speed Test Dashboard - LEGENDARY EDITION */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #0a0e27;
+    overflow: hidden;
+}
+
+/* Dashboard Overlay */
+.speedtest-overlay {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 85%;
+    height: 100vh;
+    background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #2d1b69 100%);
+    z-index: 10000;
+    transition: right 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    box-shadow: -10px 0 40px rgba(0, 0, 0, 0.5);
+    border-left: 2px solid #4a90e2;
+    backdrop-filter: blur(10px);
+}
+
+.speedtest-overlay.active {
+    right: 0;
+}
+
+/* Header */
+.dashboard-header {
+    padding: 20px 30px;
+    background: rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dashboard-title {
+    color: #fff;
+    font-size: 24px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.title-icon {
+    background: linear-gradient(45deg, #4a90e2, #50c878);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-size: 28px;
+}
+
+.close-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: #fff;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 18px;
+}
+
+.close-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: rotate(90deg);
+}
+
+/* Main Content */
+.dashboard-content {
+    padding: 30px;
+    height: calc(100vh - 80px);
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 30px;
+}
+
+/* Left Panel - Speedometer */
+.speedometer-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Speedometer */
+.speedometer {
+    position: relative;
+    width: 400px;
+    height: 400px;
+    margin-bottom: 30px;
+}
+
+.speedometer-bg {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: conic-gradient(
+        from 135deg,
+        #ff4444 0deg,
+        #ffaa00 45deg,
+        #ffff00 90deg,
+        #88ff00 135deg,
+        #00ff88 180deg,
+        #00ffff 225deg,
+        #0088ff 270deg
+    );
+    padding: 20px;
+    box-shadow: 
+        0 0 50px rgba(74, 144, 226, 0.3),
+        inset 0 0 50px rgba(0, 0, 0, 0.5);
+}
+
+.speedometer-inner {
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, #1a1f3a 40%, #0a0e27 100%);
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.speed-value {
+    font-size: 48px;
+    font-weight: 900;
+    color: #4a90e2;
+    text-shadow: 0 0 20px rgba(74, 144, 226, 0.5);
+    margin-bottom: 5px;
+}
+
+.speed-unit {
+    font-size: 16px;
+    color: #8892b0;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.speed-needle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 4px;
+    height: 150px;
+    background: linear-gradient(to top, #ff4444, #4a90e2);
+    transform-origin: bottom center;
+    transform: translate(-50%, -100%) rotate(135deg);
+    transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    border-radius: 2px;
+    box-shadow: 0 0 10px rgba(74, 144, 226, 0.8);
+}
+
+.needle-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    background: radial-gradient(circle, #4a90e2, #2c5282);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 15px rgba(74, 144, 226, 0.6);
+}
+
+/* Test Status */
+.test-status {
+    color: #fff;
+    font-size: 18px;
+    margin-bottom: 20px;
+    text-align: center;
+    min-height: 25px;
+}
+
+/* Progress Bars */
+.progress-container {
+    width: 100%;
+    max-width: 500px;
+    margin-bottom: 30px;
+}
+
+.progress-item {
+    margin-bottom: 15px;
+}
+
+.progress-label {
+    color: #8892b0;
+    font-size: 14px;
+    margin-bottom: 5px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4a90e2, #50c878);
+    width: 0%;
+    transition: width 0.3s ease;
+    border-radius: 3px;
+}
+
+/* Right Panel - AI Insights */
+.insights-panel {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 25px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.insights-header {
+    color: #fff;
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.ai-insight {
+    background: rgba(74, 144, 226, 0.1);
+    border-left: 4px solid #4a90e2;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    color: #e2e8f0;
+    font-size: 14px;
+    line-height: 1.6;
+    opacity: 0;
+    transform: translateX(20px);
+    animation: slideInRight 0.5s ease forwards;
+}
+
+.ai-insight:nth-child(2) { animation-delay: 0.2s; }
+.ai-insight:nth-child(3) { animation-delay: 0.4s; }
+.ai-insight:nth-child(4) { animation-delay: 0.6s; }
+
+@keyframes slideInRight {
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Capability Grid */
+.capability-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.capability-card {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+.capability-card.supported {
+    border-color: #50c878;
+    background: rgba(80, 200, 120, 0.1);
+}
+
+.capability-card.limited {
+    border-color: #ffa500;
+    background: rgba(255, 165, 0, 0.1);
+}
+
+.capability-card.unsupported {
+    border-color: #ff6b6b;
+    background: rgba(255, 107, 107, 0.1);
+}
+
+.capability-icon {
+    font-size: 24px;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.capability-label {
+    color: #e2e8f0;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* Network Score */
+.network-score {
+    text-align: center;
+    margin-top: 30px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.score-value {
+    font-size: 48px;
+    font-weight: 900;
+    margin-bottom: 10px;
+    background: linear-gradient(45deg, #4a90e2, #50c878);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.score-grade {
+    font-size: 24px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 5px;
+}
+
+.score-description {
+    color: #8892b0;
+    font-size: 14px;
+}
+
+/* Control Buttons */
+.control-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+.control-btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 25px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 12px;
+}
+
+.primary-btn {
+    background: linear-gradient(45deg, #4a90e2, #50c878);
+    color: white;
+}
+
+.primary-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(74, 144, 226, 0.3);
+}
+
+.secondary-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: #e2e8f0;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.secondary-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Animations */
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.glow {
+    animation: glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+    from {
+        box-shadow: 0 0 20px rgba(74, 144, 226, 0.3);
+    }
+    to {
+        box-shadow: 0 0 40px rgba(74, 144, 226, 0.6);
+    }
+}
+
+/* Loading States */
+.loading {
+    position: relative;
+    overflow: hidden;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent, 
+        rgba(255, 255, 255, 0.1), 
+        transparent
+    );
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    100% {
+        left: 100%;
+    }
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .dashboard-content {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .speedometer {
+        width: 300px;
+        height: 300px;
+    }
+    
+    .speed-value {
+        font-size: 36px;
+    }
+}

@@ -95,6 +95,43 @@
   height: 300px;
 }
 
+/* Epic Speed Test Button */
+.epic-speedtest-btn {
+  background: linear-gradient(45deg, #4a90e2, #50c878) !important;
+  color: white !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+  box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3) !important;
+  border: none !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.epic-speedtest-btn:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 25px rgba(74, 144, 226, 0.4) !important;
+}
+
+.epic-speedtest-btn:active {
+  transform: translateY(0) !important;
+}
+
+.epic-speedtest-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s;
+}
+
+.epic-speedtest-btn:hover::before {
+  left: 100%;
+}
+
 /* Fullscreen Toggle */
 .fullscreen-toggle {
   position: fixed;

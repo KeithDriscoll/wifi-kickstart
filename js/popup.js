@@ -233,8 +233,16 @@ class WiFiKickstartApp {
       this.uiManager.updateJitter({ success: false });
     }
   }
+async runSpeedTest(isSimpleMode = false) {
+  // Open the epic dashboard FIRST
+  if (window.epicDashboard) {
+    window.epicDashboard.open();
+    
+    // Small delay to let dashboard animate in
+    await new Promise(resolve => setTimeout(resolve, 600));
+  }
 
-  async runSpeedTest(isSimpleMode = false) {
+  // Then run your existing speed test code...
   try {
     // Initialize enhanced speed test if not already done
     if (!this.enhancedSpeedTest) {
@@ -247,7 +255,6 @@ class WiFiKickstartApp {
     
     console.log('Enhanced speed test completed:', result);
     return result;
-
   } catch (error) {
     console.error('Enhanced speed test failed, falling back to legacy:', error);
     return this.runLegacySpeedTest(isSimpleMode);

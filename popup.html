@@ -220,7 +220,32 @@
     </div>
   </div>
 
+  <!-- Speed Test Dashboard Container -->
+<div id="speedtest-dashboard-container"></div>
+
+<!-- Load the dashboard -->
+<script>
+// Load the dashboard HTML when popup opens
+fetch(chrome.runtime.getURL('speedtest-dashboard.html'))
+  .then(response => response.text())
+  .then(html => {
+    // Extract just the dashboard overlay div from the HTML
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const dashboard = doc.querySelector('.speedtest-overlay');
+    
+    if (dashboard) {
+      document.getElementById('speedtest-dashboard-container').appendChild(dashboard);
+      
+      // Initialize the dashboard
+      window.epicDashboard = new EpicSpeedTestDashboard();
+    }
+  });
+</script>
+
   <!-- Modular JavaScript -->
   <script type="module" src="js/popup.js"></script>
+  <script src="js/speedtest-dashboard.js"></script>
+  
 </body>
 </html>
