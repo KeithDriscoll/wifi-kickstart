@@ -1,11 +1,12 @@
-// Main application entry point - Enhanced with VPN detection
+// Wi-Fi Kickstart Popup - Clean & Simple Version
+// Removed all enhanced speed test clutter - runs from dashboard instead
+
 import { ConnectionManager } from './modules/connection.js';
 import { NetworkInfoManager } from './modules/networkInfo.js';
 import { UIManager } from './modules/uiManager.js';
 import { ThemeManager } from './modules/themeManager.js';
 import { SettingsManager } from './modules/settingsManager.js';
 import { DashboardManager } from './modules/dashboardManager.js';
-import { EnhancedSpeedTestIntegration } from './modules/speedTest/EnhancedSpeedTestIntegration.js';
 
 class WiFiKickstartApp {
   constructor() {
@@ -41,16 +42,16 @@ class WiFiKickstartApp {
       });
     }
 
-    // Speed test buttons
+    // Speed test buttons - SIMPLE BASIC SPEED TEST ONLY
     if (this.uiManager.elements.runSpeedBtn) {
       this.uiManager.elements.runSpeedBtn.addEventListener("click", () => {
-        this.runSpeedTest(false);
+        this.runBasicSpeedTest(false);
       });
     }
 
     if (this.uiManager.elements.runSpeedBtnSimple) {
       this.uiManager.elements.runSpeedBtnSimple.addEventListener("click", () => {
-        this.runSpeedTest(true);
+        this.runBasicSpeedTest(true);
       });
     }
 
@@ -66,82 +67,91 @@ class WiFiKickstartApp {
   setupCustomEvents() {
     // Listen for mode changes
     window.addEventListener('modeChanged', (event) => {
-      this.uiManager.isAdvancedMode = event.detail.isAdvancedMode;
-      this.uiManager.setAdvancedMode(event.detail.isAdvancedMode);
+      this.uiManager.isAdvancedMode = event.detail.isAdvanced;
       
-      // Collect data when switching to advanced mode
-      if (event.detail.isAdvancedMode) {
-        this.runFullDiagnostics();
+      // Update metrics when switching modes
+      if (this.uiManager.isAdvancedMode) {
+        this.measureLatency();
+        this.measureJitter();
       }
     });
 
-    // Listen for theme reapplication requests
-    window.addEventListener('themeReapply', () => {
-      this.themeManager.reapplyThemeState();
+    // Listen for theme changes
+    window.addEventListener('themeChanged', (event) => {
+      console.log('Theme changed to:', event.detail.theme);
     });
   }
 
   async performInitialLoad() {
-    // Load user preferences
-    const isAdvancedMode = await this.settingsManager.getSetting('advancedModeEnabled');
-    this.uiManager.isAdvancedMode = isAdvancedMode;
-    this.uiManager.setAdvancedMode(isAdvancedMode);
-
-    // Initial data fetching
-    this.requestConnectionCheck();
-    this.fetchIPAddress();
-    this.detectVPNUsage();
-    this.detectCloudflareUsage();
-    
-    // Run initial diagnostics to populate dashboard
-    if (isAdvancedMode) {
-      setTimeout(() => this.runFullDiagnostics(), 1000);
+    try {
+      // Check connection status immediately
+      await this.requestConnectionCheck();
+      
+      // Load network information
+      await this.loadNetworkInfo();
+      
+      // If in advanced mode, measure latency and jitter
+      if (this.uiManager.isAdvancedMode) {
+        await this.measureLatency();
+        await this.measureJitter();
+      }
+      
+      // Update network score if we have enough data
+      this.updateNetworkScore();
+      
+    } catch (error) {
+      console.error('Initial load failed:', error);
+      this.uiManager.updateStatus({ success: false, message: 'Initialization failed' });
     }
   }
 
   async requestConnectionCheck() {
-  try {
-    const response = await this.connectionManager.checkConnection();
-    const isOnline = response?.status === "online";
-
-    if (isOnline) {
-      this.fetchOnlineDuration(); // ✅ Shows "Online for 5m 20s"
-      this.runFullDiagnostics();
-    } else {
-      this.uiManager.updateStatus("Offline ❌", false); // ⬅️ Clean format
-    }
-    } catch (error) {
-    this.uiManager.updateStatus("Error ❌", false); // ⬅️ Clean format
-    }
-  }
-
-
-  async fetchIPAddress() {
     try {
-      const ipData = await this.networkInfoManager.fetchIPAddress();
-      this.uiManager.updateIPAddress(ipData);
+      this.uiManager.updateStatus({ success: null, message: 'Checking...' });
+      
+      const result = await chrome.runtime.sendMessage({ action: "checkConnection" });
+      
+      if (chrome.runtime.lastError) {
+        throw new Error(chrome.runtime.lastError.message);
+      }
+      
+      this.uiManager.updateStatus(result);
+      
     } catch (error) {
-      this.uiManager.updateIPAddress({ success: false });
+      console.error('Connection check failed:', error);
+      this.uiManager.updateStatus({ success: false, message: 'Check failed' });
     }
   }
 
-  // Enhanced VPN detection
+  async loadNetworkInfo() {
+    try {
+      const networkData = await this.networkInfoManager.getNetworkInfo();
+      this.uiManager.updateNetworkInfo(networkData);
+      
+      // Detect VPN usage and store results
+      this.detectVPNUsage();
+      
+    } catch (error) {
+      console.error('Network info failed:', error);
+      this.uiManager.updateNetworkInfo({ success: false });
+    }
+  }
+
   async detectVPNUsage() {
     try {
       const vpnData = await this.networkInfoManager.detectVPN();
       this.uiManager.updateVPNStatus(vpnData);
       
-      // Store VPN data for dashboard charts
-      if (vpnData.success) {
-        this.storeVPNData(vpnData);
-      }
+      // Store VPN history for dashboard
+      this.storeVPNHistory(vpnData);
+      
     } catch (error) {
+      console.error('VPN detection failed:', error);
       this.uiManager.updateVPNStatus({ success: false });
     }
   }
 
-  // Store VPN detection results for dashboard
-  storeVPNData(vpnData) {
+  storeVPNHistory(vpnData) {
     chrome.storage.local.get('vpnHistory', (storage) => {
       const vpnHistory = storage.vpnHistory || [];
       vpnHistory.push({
@@ -157,6 +167,74 @@ class WiFiKickstartApp {
       const recentVPN = vpnHistory.slice(-50);
       chrome.storage.local.set({ vpnHistory: recentVPN });
     });
+  }
+
+  async measureLatency() {
+    if (!this.uiManager.isAdvancedMode) return;
+    
+    try {
+      const latencyData = await this.connectionManager.measureLatency();
+      this.uiManager.updateLatency(latencyData);
+      this.updateNetworkScore();
+      
+      // Store for dashboard
+      if (latencyData.success) {
+        this.dashboardManager.addDataPoint({ latency: latencyData.latency });
+      }
+    } catch (error) {
+      this.uiManager.updateLatency({ success: false });
+    }
+  }
+
+  async measureJitter() {
+    if (!this.uiManager.isAdvancedMode) return;
+    
+    try {
+      const jitterData = await this.connectionManager.measureJitter();
+      this.uiManager.updateJitter(jitterData);
+      this.updateNetworkScore();
+      
+      // Store for dashboard
+      if (jitterData.success) {
+        this.dashboardManager.addDataPoint({ jitter: jitterData.jitter });
+      }
+    } catch (error) {
+      this.uiManager.updateJitter({ success: false });
+    }
+  }
+
+  // SIMPLE BASIC SPEED TEST - No enhanced features, just basic speed
+  async runBasicSpeedTest(isSimpleMode = false) {
+    this.uiManager.setSpeedTestLoading(isSimpleMode);
+    
+    try {
+      const speedData = await this.connectionManager.runSpeedTest();
+      this.uiManager.updateSpeedTest(speedData, isSimpleMode);
+      this.updateNetworkScore();
+      
+      // Store complete data point for dashboard
+      const dashboardResults = { speed: speedData.speed };
+      
+      // If in advanced mode, include current metrics
+      if (this.uiManager.isAdvancedMode) {
+        const metrics = this.connectionManager.getMetrics();
+        if (metrics.latency) dashboardResults.latency = metrics.latency;
+        if (metrics.jitter) dashboardResults.jitter = metrics.jitter;
+        
+        const score = this.connectionManager.calculateNetworkScore();
+        if (score !== null) dashboardResults.score = score;
+      }
+      
+      this.dashboardManager.addDataPoint(dashboardResults);
+      console.log('Dashboard data stored:', dashboardResults);
+      
+      // Update VPN detection after speed test
+      this.detectVPNUsage();
+      
+    } catch (error) {
+      console.error('Speed test failed:', error);
+      this.uiManager.updateSpeedTest({ success: false }, isSimpleMode);
+    }
   }
 
   // Combined diagnostics method that stores dashboard data
@@ -200,155 +278,56 @@ class WiFiKickstartApp {
     }
   }
 
-  async measureLatency() {
-    if (!this.uiManager.isAdvancedMode) return;
-    
-    try {
-      const latencyData = await this.connectionManager.measureLatency();
-      this.uiManager.updateLatency(latencyData);
-      this.updateNetworkScore();
-      
-      // Store for dashboard
-      if (latencyData.success) {
-        this.dashboardManager.addDataPoint({ latency: latencyData.latency });
-      }
-    } catch (error) {
-      this.uiManager.updateLatency({ success: false });
-    }
-  }
-
-  async measureJitter() {
-    if (!this.uiManager.isAdvancedMode) return;
-    
-    try {
-      const jitterData = await this.connectionManager.measureJitter();
-      this.uiManager.updateJitter(jitterData);
-      this.updateNetworkScore();
-      
-      // Store for dashboard
-      if (jitterData.success) {
-        this.dashboardManager.addDataPoint({ jitter: jitterData.jitter });
-      }
-    } catch (error) {
-      this.uiManager.updateJitter({ success: false });
-    }
-  }
-async runSpeedTest(isSimpleMode = false) {
-  // Open the epic dashboard FIRST
-  if (window.epicDashboard) {
-    window.epicDashboard.open();
-    
-    // Small delay to let dashboard animate in
-    await new Promise(resolve => setTimeout(resolve, 600));
-  }
-
-  // Then run your existing speed test code...
-  try {
-    // Initialize enhanced speed test if not already done
-    if (!this.enhancedSpeedTest) {
-      this.enhancedSpeedTest = new EnhancedSpeedTestIntegration();
-      await this.enhancedSpeedTest.initialize();
-    }
-
-    // Run enhanced speed test
-    const result = await this.enhancedSpeedTest.runEnhancedSpeedTest(isSimpleMode);
-    
-    console.log('Enhanced speed test completed:', result);
-    return result;
-  } catch (error) {
-    console.error('Enhanced speed test failed, falling back to legacy:', error);
-    return this.runLegacySpeedTest(isSimpleMode);
-  }
-}
-
-  // Keep your existing speed test as fallback
-  async runLegacySpeedTest(isSimpleMode = false) {
-  // Your existing speed test code goes here
-  // Just rename your current runSpeedTest method to this
-  this.uiManager.setSpeedTestLoading(isSimpleMode);
-    
-  try {
-    const speedData = await this.connectionManager.runSpeedTest();
-    this.uiManager.updateSpeedTest(speedData, isSimpleMode);
-    this.updateNetworkScore();
-    
-    // Store complete data point for dashboard
-    const dashboardResults = { speed: speedData.speed };
-    
-    // If in advanced mode, include current metrics
-    if (this.uiManager.isAdvancedMode) {
-      const metrics = this.connectionManager.getMetrics();
-      if (metrics.latency) dashboardResults.latency = metrics.latency;
-      if (metrics.jitter) dashboardResults.jitter = metrics.jitter;
-      
-      const score = this.connectionManager.calculateNetworkScore();
-      if (score !== null) dashboardResults.score = score;
-    }
-    
-    this.dashboardManager.addDataPoint(dashboardResults);
-    console.log('Speed test data stored for dashboard:', dashboardResults);
-    
-  } catch (error) {
-    this.uiManager.updateSpeedTest({ success: false }, isSimpleMode);
-  }
-}
-
   updateNetworkScore() {
     if (!this.uiManager.isAdvancedMode) return;
     
     const score = this.connectionManager.calculateNetworkScore();
     this.uiManager.updateNetworkScore(score);
+  }
+
+  // Event handlers for settings
+  handleModeChange(isAdvanced) {
+    console.log('Mode changed:', isAdvanced ? 'Advanced' : 'Simple');
     
-    // Store for dashboard only if we have a complete score
-    if (score !== null) {
-      const metrics = this.connectionManager.getMetrics();
-      const dashboardResults = { score: score };
-      
-      // Include current metrics if available
-      if (metrics.latency) dashboardResults.latency = metrics.latency;
-      if (metrics.jitter) dashboardResults.jitter = metrics.jitter;
-      if (metrics.speed) dashboardResults.speed = metrics.speed;
-      
-      this.dashboardManager.addDataPoint(dashboardResults);
+    if (isAdvanced) {
+      // When switching to advanced, measure metrics
+      this.measureLatency();
+      this.measureJitter();
     }
   }
 
-  async detectCloudflareUsage() {
-    try {
-      // WARP detection
-      const warpData = await this.networkInfoManager.detectCloudflareWARP();
-      this.uiManager.updateWARPStatus(warpData);
-
-      // Network provider detection
-      const providerData = await this.networkInfoManager.getNetworkProvider();
-      this.uiManager.updateNetworkProvider(providerData);
-    } catch (error) {
-      this.uiManager.updateWARPStatus({ success: false });
-      this.uiManager.updateNetworkProvider({ success: false });
+  handleFeatureToggle(feature, enabled) {
+    console.log(`Feature ${feature} ${enabled ? 'enabled' : 'disabled'}`);
+    
+    // Update UI based on feature toggles
+    switch (feature) {
+      case 'speedTest':
+        this.uiManager.toggleSpeedTest(enabled);
+        break;
+      case 'vpnCheck':
+        if (enabled) this.detectVPNUsage();
+        break;
+      case 'warpCheck':
+        if (enabled) this.loadNetworkInfo();
+        break;
+      case 'networkScore':
+        if (enabled) this.updateNetworkScore();
+        break;
     }
-  }
- async fetchOnlineDuration() {
-  chrome.storage.local.get(['onlineStartTime'], (data) => {
-    if (data.onlineStartTime) {
-      const now = Date.now();
-      const durationMs = now - data.onlineStartTime;
-
-      const totalSeconds = Math.floor(durationMs / 1000);
-      const minutes = Math.floor(totalSeconds / 60);
-      const seconds = totalSeconds % 60;
-
-      const durationStr = `${minutes}m ${seconds}s`;
-
-      this.uiManager.updateStatus(`Online for ${durationStr}`, true, true);
-      } else {
-      this.uiManager.updateStatus("Online ✅", true);
-      }
-    });
   }
 }
 
-// Initialize app when DOM is ready
-document.addEventListener("DOMContentLoaded", () => {
-  const app = new WiFiKickstartApp();
-  app.initialize();
+// Initialize the application when DOM is ready
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    const app = new WiFiKickstartApp();
+    await app.initialize();
+    
+    // Make app globally available for debugging
+    window.app = app;
+    
+    console.log('✅ Wi-Fi Kickstart popup initialized successfully');
+  } catch (error) {
+    console.error('❌ Failed to initialize Wi-Fi Kickstart popup:', error);
+  }
 });
