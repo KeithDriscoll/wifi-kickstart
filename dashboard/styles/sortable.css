@@ -1,0 +1,151 @@
+/* Sortable Styles
+   ======================================== */
+
+/* Sortable ghost and drag states */
+.sortable-ghost {
+  opacity: 0.5;
+  background: var(--bg-tertiary) !important;
+  border: 2px dashed var(--primary-color) !important;
+  transform: rotate(2deg);
+}
+
+.sortable-chosen {
+  background: var(--bg-tertiary) !important;
+  box-shadow: 0 8px 32px rgba(0, 120, 212, 0.3) !important;
+  transform: scale(1.02);
+  z-index: 999;
+}
+
+.sortable-drag {
+  opacity: 0.8;
+  transform: rotate(-2deg) scale(1.05);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Chart containers */
+.chart-container {
+  transition: all 0.3s ease;
+  cursor: grab;
+}
+
+.chart-container:active {
+  cursor: grabbing;
+}
+
+/* Dashboard sections */
+.dashboard-section {
+  transition: all 0.3s ease;
+  cursor: grab;
+  position: relative;
+}
+
+.dashboard-section:active {
+  cursor: grabbing;
+}
+
+.dashboard-section::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  right: -5px;
+  bottom: -5px;
+  border: 2px solid transparent;
+  border-radius: var(--radius-lg);
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
+
+.dashboard-section:hover::before {
+  border-color: var(--primary-color);
+  opacity: 0.3;
+}
+
+/* Section drag handle */
+.section-drag-handle {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 20px;
+  height: 20px;
+  background: var(--primary-color);
+  border-radius: 4px;
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 12px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 10;
+}
+
+.section-drag-handle:active {
+  cursor: grabbing;
+}
+
+.dashboard-section:hover .section-drag-handle {
+  opacity: 1;
+}
+
+/* Chart drag handle */
+.chart-drag-handle {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 16px;
+  height: 16px;
+  background: var(--secondary-color);
+  border-radius: 3px;
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 10px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 10;
+}
+
+.chart-drag-handle:active {
+  cursor: grabbing;
+}
+
+.chart-container:hover .chart-drag-handle {
+  opacity: 1;
+}
+
+/* Fullscreen adjustments */
+body.css-fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  background: var(--bg-primary);
+  overflow-y: auto;
+}
+
+body.css-fullscreen .toggle-dark {
+  z-index: 10000;
+}
+
+body.css-fullscreen .fullscreen-toggle {
+  z-index: 10000;
+}
+
+:fullscreen {
+  background: var(--bg-primary);
+}
+
+:fullscreen .dashboard-container {
+  max-width: none;
+  padding: var(--spacing-md);
+}
+
+:fullscreen .charts-grid {
+  grid-template-columns: repeat(3, 1fr);
+}

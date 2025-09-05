@@ -1,0 +1,80 @@
+/* Status Cards
+   ======================================== */
+
+.status-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-xl);
+}
+
+.status-card {
+  background: var(--bg-secondary);
+  padding: var(--spacing-lg) var(--spacing-md);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-color);
+  text-align: center;
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+  position: relative;
+  overflow: hidden;
+}
+
+.status-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary-color), var(--primary-hover));
+  transform: scaleX(0);
+  transition: transform var(--transition-base);
+}
+
+.status-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.status-card:hover::before {
+  transform: scaleX(1);
+}
+
+.status-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.status-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+/* Status Indicators */
+.status-card[data-status="good"] .status-value { 
+  color: var(--success-color); 
+}
+
+.status-card[data-status="warning"] .status-value { 
+  color: var(--warning-color); 
+}
+
+.status-card[data-status="error"] .status-value { 
+  color: var(--error-color); 
+}
+
+/* Status card loading state */
+.status-card.loading .status-value {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}

@@ -1,0 +1,89 @@
+/* Utility Classes
+   ======================================== */
+
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+
+.mt-sm { margin-top: var(--spacing-sm); }
+.mt-md { margin-top: var(--spacing-md); }
+.mt-lg { margin-top: var(--spacing-lg); }
+.mt-xl { margin-top: var(--spacing-xl); }
+
+.mb-sm { margin-bottom: var(--spacing-sm); }
+.mb-md { margin-bottom: var(--spacing-md); }
+.mb-lg { margin-bottom: var(--spacing-lg); }
+.mb-xl { margin-bottom: var(--spacing-xl); }
+
+.hidden { display: none !important; }
+.visible { display: block !important; }
+
+/* Accessibility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+*:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Accessibility for menu */
+.dashboard-control-menu .pill-switch input:focus + .pill-slider {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+.dashboard-control-menu .menu-action-btn:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+.dashboard-menu-toggle:focus {
+  outline: 2px solid white;
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .dashboard-control-menu .pill-slider {
+    border: 2px solid var(--text-primary);
+  }
+  
+  .dashboard-control-menu .menu-action-btn {
+    border-width: 2px;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .toggle-dark,
+  .controls,
+  .chart-actions,
+  .footer-link,
+  .dashboard-menu-toggle,
+  .fullscreen-toggle {
+    display: none !important;
+  }
+  
+  body {
+    background: white;
+    color: black;
+  }
+  
+  .chart-container {
+    break-inside: avoid;
+  }
+}

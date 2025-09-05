@@ -322,9 +322,16 @@ class DashboardManager {
     }, 60000);
   }
   
-  setupModalHandlers() {
+setupModalHandlers() {
+  // Wait a bit longer for all DOM elements to be ready
+  setTimeout(() => {
     const modal = document.getElementById('chartModal');
-    const modalClose = modal?.querySelector('.modal-close');
+    if (!modal) {
+      console.error('Chart modal not found');
+      return;
+    }
+
+    const modalClose = modal.querySelector('.modal-close');
     
     if (modalClose) {
       modalClose.addEventListener('click', () => {
@@ -332,39 +339,60 @@ class DashboardManager {
       });
     }
     
-    if (modal) {
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-          this.closeModal();
-        }
-      });
-    }
+    // Handle clicking outside modal
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        this.closeModal();
+      }
+    });
     
-    document.querySelectorAll('.chart-btn[data-action="expand"]').forEach(btn => {
+    // FIXED: Set up expand button listeners after charts are created
+    const expandButtons = document.querySelectorAll('.chart-btn[data-action="expand"]');
+    console.log('Found expand buttons:', expandButtons.length);
+    
+    expandButtons.forEach(btn => {
       btn.addEventListener('click', (e) => {
+        e.preventDefault();
         e.stopPropagation();
+        console.log('Expand button clicked!');
+        
         const container = btn.closest('.chart-container');
         const chartType = container?.dataset.chart;
+        console.log('Chart type:', chartType);
+        
         if (chartType) {
           this.expandChart(chartType);
         }
       });
     });
     
+    // ESC key to close modal
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && modal?.classList.contains('active')) {
+      if (e.key === 'Escape' && modal.classList.contains('active')) {
         this.closeModal();
       }
     });
-  }
+    
+  }, 500); // Increased timeout to ensure charts are fully rendered
+}
   
   expandChart(chartType) {
-    const modal = document.getElementById('chartModal');
-    if (!modal) return;
-    
-    const sourceChart = this.state.charts[chartType];
-    if (!sourceChart) return;
-    
+      const modal = document.getElementById('chartModal'); // ← ADD THIS LINE
+      if (!modal) {
+    console.error('Modal not found');
+    return;
+  }
+  console.log('Modal found:', modal);
+  
+  const sourceChart = this.state.charts[chartType];
+  if (!sourceChart) {
+    console.error('Source chart not found for type:', chartType);
+    console.log('Available charts:', Object.keys(this.state.charts));
+    return;
+  }
+  console.log('Source chart found:', sourceChart);
+  console.log('Chart config:', sourceChart?.config); // Add this line
+console.log('All state charts:', this.state.charts); // Add this line too
     modal.classList.add('active');
     modal.setAttribute('aria-hidden', 'false');
     
@@ -380,10 +408,10 @@ class DashboardManager {
     }
     
     const config = {
-      type: sourceChart.config.type,
-      data: JSON.parse(JSON.stringify(sourceChart.config.data)),
-      options: JSON.parse(JSON.stringify(sourceChart.config.options))
-    };
+  type: sourceChart.config.type,
+  data: sourceChart.config.data,
+  options: { ...sourceChart.config.options } // Spread operator instead of JSON stringify
+};
     
     config.options.maintainAspectRatio = true;
     config.options.aspectRatio = 2;
