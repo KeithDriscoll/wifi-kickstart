@@ -234,33 +234,56 @@ class WiFiKickstartApp {
   }
 
   async runSpeedTest(isSimpleMode = false) {
-    this.uiManager.setSpeedTestLoading(isSimpleMode);
-    
-    try {
-      const speedData = await this.connectionManager.runSpeedTest();
-      this.uiManager.updateSpeedTest(speedData, isSimpleMode);
-      this.updateNetworkScore();
-      
-      // Store complete data point for dashboard
-      const dashboardResults = { speed: speedData.speed };
-      
-      // If in advanced mode, include current metrics
-      if (this.uiManager.isAdvancedMode) {
-        const metrics = this.connectionManager.getMetrics();
-        if (metrics.latency) dashboardResults.latency = metrics.latency;
-        if (metrics.jitter) dashboardResults.jitter = metrics.jitter;
-        
-        const score = this.connectionManager.calculateNetworkScore();
-        if (score !== null) dashboardResults.score = score;
-      }
-      
-      this.dashboardManager.addDataPoint(dashboardResults);
-      console.log('Speed test data stored for dashboard:', dashboardResults);
-      
-    } catch (error) {
-      this.uiManager.updateSpeedTest({ success: false }, isSimpleMode);
+  try {
+    // Initialize enhanced speed test if not already done
+    if (!this.enhancedSpeedTest) {
+      this.enhancedSpeedTest = new EnhancedSpeedTestIntegration();
+      await this.enhancedSpeedTest.initialize();
     }
+
+    // Run enhanced speed test
+    const result = await this.enhancedSpeedTest.runEnhancedSpeedTest(isSimpleMode);
+    
+    console.log('Enhanced speed test completed:', result);
+    return result;
+
+  } catch (error) {
+    console.error('Enhanced speed test failed, falling back to legacy:', error);
+    return this.runLegacySpeedTest(isSimpleMode);
   }
+}
+
+  // Keep your existing speed test as fallback
+  async runLegacySpeedTest(isSimpleMode = false) {
+  // Your existing speed test code goes here
+  // Just rename your current runSpeedTest method to this
+  this.uiManager.setSpeedTestLoading(isSimpleMode);
+    
+  try {
+    const speedData = await this.connectionManager.runSpeedTest();
+    this.uiManager.updateSpeedTest(speedData, isSimpleMode);
+    this.updateNetworkScore();
+    
+    // Store complete data point for dashboard
+    const dashboardResults = { speed: speedData.speed };
+    
+    // If in advanced mode, include current metrics
+    if (this.uiManager.isAdvancedMode) {
+      const metrics = this.connectionManager.getMetrics();
+      if (metrics.latency) dashboardResults.latency = metrics.latency;
+      if (metrics.jitter) dashboardResults.jitter = metrics.jitter;
+      
+      const score = this.connectionManager.calculateNetworkScore();
+      if (score !== null) dashboardResults.score = score;
+    }
+    
+    this.dashboardManager.addDataPoint(dashboardResults);
+    console.log('Speed test data stored for dashboard:', dashboardResults);
+    
+  } catch (error) {
+    this.uiManager.updateSpeedTest({ success: false }, isSimpleMode);
+  }
+}
 
   updateNetworkScore() {
     if (!this.uiManager.isAdvancedMode) return;
