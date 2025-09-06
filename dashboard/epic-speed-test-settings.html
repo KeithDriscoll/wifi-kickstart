@@ -48,6 +48,52 @@
             font-size: 16px;
         }
 
+        /* Preset Configurations */
+        .preset-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .preset-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 12px;
+        }
+
+        .preset-btn.quick {
+            background: linear-gradient(45deg, #50c878, #32cd32);
+            color: white;
+        }
+
+        .preset-btn.standard {
+            background: linear-gradient(45deg, #4a90e2, #1e90ff);
+            color: white;
+        }
+
+        .preset-btn.thorough {
+            background: linear-gradient(45deg, #ff6b6b, #ff4757);
+            color: white;
+        }
+
+        .preset-btn.gaming {
+            background: linear-gradient(45deg, #9c88ff, #8c7ae6);
+            color: white;
+        }
+
+        .preset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(74, 144, 226, 0.3);
+        }
+
         .settings-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
@@ -138,7 +184,7 @@
             transform: translateX(26px);
         }
 
-        /* Select Dropdowns */
+        /* Form Controls */
         select, input[type="number"], input[type="text"] {
             width: 100%;
             padding: 12px;
@@ -218,51 +264,6 @@
             font-weight: 600;
         }
 
-        /* Preset Configurations */
-        .preset-buttons {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
-
-        .preset-btn {
-            padding: 12px 20px;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 12px;
-        }
-
-        .preset-btn.quick {
-            background: linear-gradient(45deg, #50c878, #32cd32);
-            color: white;
-        }
-
-        .preset-btn.standard {
-            background: linear-gradient(45deg, #4a90e2, #1e90ff);
-            color: white;
-        }
-
-        .preset-btn.thorough {
-            background: linear-gradient(45deg, #ff6b6b, #ff4757);
-            color: white;
-        }
-
-        .preset-btn.gaming {
-            background: linear-gradient(45deg, #9c88ff, #8c7ae6);
-            color: white;
-        }
-
-        .preset-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(74, 144, 226, 0.3);
-        }
-
         /* Action Buttons */
         .action-buttons {
             display: flex;
@@ -303,60 +304,6 @@
 
         .action-btn:hover {
             transform: translateY(-2px);
-        }
-
-        /* Custom Server Input */
-        .custom-servers {
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 15px;
-        }
-
-        .server-input {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-
-        .add-server-btn {
-            background: rgba(74, 144, 226, 0.2);
-            border: 1px solid #4a90e2;
-            color: #4a90e2;
-            padding: 8px 15px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: all 0.3s ease;
-        }
-
-        .add-server-btn:hover {
-            background: #4a90e2;
-            color: white;
-        }
-
-        .server-list {
-            max-height: 150px;
-            overflow-y: auto;
-            margin-top: 10px;
-        }
-
-        .server-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 5px;
-            margin-bottom: 5px;
-        }
-
-        .remove-server {
-            background: none;
-            border: none;
-            color: #ff6b6b;
-            cursor: pointer;
-            font-size: 16px;
         }
 
         /* Responsive */
@@ -566,43 +513,6 @@
                 </div>
             </div>
 
-            <!-- Server Selection -->
-            <div class="settings-section">
-                <h3 class="section-title">
-                    <span class="section-icon">🌍</span>
-                    Server Selection
-                </h3>
-                
-                <div class="setting-item">
-                    <label class="setting-label">Server Mode</label>
-                    <select id="serverMode">
-                        <option value="auto">Auto (Best Servers)</option>
-                        <option value="all">All Available Servers</option>
-                        <option value="regional">Regional Servers Only</option>
-                        <option value="custom">Custom Server List</option>
-                    </select>
-                </div>
-
-                <div class="setting-item">
-                    <label class="setting-label">Preferred Regions</label>
-                    <div class="multi-select" id="serverRegions">
-                        <div class="multi-select-item selected" data-value="us-east">US East</div>
-                        <div class="multi-select-item selected" data-value="us-west">US West</div>
-                        <div class="multi-select-item" data-value="europe">Europe</div>
-                        <div class="multi-select-item" data-value="asia">Asia</div>
-                    </div>
-                </div>
-
-                <div class="custom-servers" id="customServers" style="display: none;">
-                    <label class="setting-label">Custom Servers</label>
-                    <div class="server-input">
-                        <input type="text" id="customServerUrl" placeholder="https://example.com/test/" style="flex: 1;">
-                        <button class="add-server-btn" onclick="addCustomServer()">Add</button>
-                    </div>
-                    <div class="server-list" id="customServerList"></div>
-                </div>
-            </div>
-
             <!-- Advanced Options -->
             <div class="settings-section">
                 <h3 class="section-title">
@@ -700,13 +610,6 @@
             setupMultiSelect('downloadFileSizes');
             setupMultiSelect('uploadFileSizes');
             setupMultiSelect('latencyTargets');
-            setupMultiSelect('serverRegions');
-            
-            // Server mode change
-            document.getElementById('serverMode').addEventListener('change', (e) => {
-                const customServers = document.getElementById('customServers');
-                customServers.style.display = e.target.value === 'custom' ? 'block' : 'none';
-            });
         }
         
         // Setup range slider with live updates
@@ -872,41 +775,6 @@
             }, 3000);
         }
         
-        // Add custom server
-        function addCustomServer() {
-            const input = document.getElementById('customServerUrl');
-            const url = input.value.trim();
-            
-            if (url && isValidUrl(url)) {
-                const serverList = document.getElementById('customServerList');
-                const serverItem = document.createElement('div');
-                serverItem.className = 'server-item';
-                serverItem.innerHTML = `
-                    <span>${url}</span>
-                    <button class="remove-server" onclick="removeCustomServer(this)">✕</button>
-                `;
-                serverList.appendChild(serverItem);
-                input.value = '';
-            } else {
-                alert('Please enter a valid URL');
-            }
-        }
-        
-        // Remove custom server
-        function removeCustomServer(button) {
-            button.parentElement.remove();
-        }
-        
-        // Validate URL
-        function isValidUrl(string) {
-            try {
-                new URL(string);
-                return true;
-            } catch (_) {
-                return false;
-            }
-        }
-        
         // Save settings
         async function saveSettings() {
             const config = buildConfigFromUI();
@@ -950,10 +818,7 @@
                     cdnTesting: document.getElementById('cdnTesting').checked,
                     concurrentTesting: document.getElementById('concurrentTesting').checked,
                     detailedLogging: document.getElementById('detailedLogging').checked
-                },
-                serverMode: document.getElementById('serverMode').value,
-                preferredRegions: getMultiSelectValues('serverRegions'),
-                customServers: getCustomServers()
+                }
             };
         }
         
@@ -962,12 +827,6 @@
             const container = document.getElementById(containerId);
             const selected = container.querySelectorAll('.multi-select-item.selected');
             return Array.from(selected).map(item => item.dataset.value);
-        }
-        
-        // Get custom servers
-        function getCustomServers() {
-            const serverItems = document.querySelectorAll('#customServerList .server-item span');
-            return Array.from(serverItems).map(item => item.textContent);
         }
         
         // Show save notification

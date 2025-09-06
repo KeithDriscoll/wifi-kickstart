@@ -390,6 +390,46 @@ setupModalHandlers() {
       }
     });
     
+    // 🔥 EPIC SPEED TEST BUTTON
+    const epicBtn = document.getElementById('epicSpeedTestBtn');
+    if (epicBtn) {
+      epicBtn.addEventListener('click', async () => {
+        console.log('🔥 Epic Speed Test button clicked!');
+        
+        try {
+          const response = await chrome.runtime.sendMessage({
+            action: "runEpicAnalysis"
+          });
+          
+          if (response.success) {
+            console.log('🔥 Epic results:', response.data);
+            alert('🔥 Epic analysis complete! Check console for results.');
+          } else {
+            console.error('Epic analysis failed:', response.error);
+            alert('❌ Epic analysis failed. Check console for details.');
+          }
+        } catch (error) {
+          console.error('Epic button error:', error);
+          alert('❌ Error running epic analysis.');
+        }
+      });
+      console.log('Epic Speed Test button listener attached');
+    } else {
+      console.warn('Epic Speed Test button not found - make sure button exists in HTML');
+    }
+
+    // ⚙️ EPIC SETTINGS BUTTON
+    const settingsBtn = document.getElementById('epicSettingsBtn');
+    if (settingsBtn) {
+      settingsBtn.addEventListener('click', () => {
+        console.log('⚙️ Epic Settings button clicked!');
+        window.open(chrome.runtime.getURL('dashboard/epic-speed-test-settings.html'), '_blank');
+      });
+      console.log('Epic Settings button listener attached');
+    } else {
+      console.warn('Epic Settings button not found - make sure button exists in HTML');
+    }
+    
     // FIXED: Set up expand button listeners after charts are created
     const expandButtons = document.querySelectorAll('.chart-btn[data-action="expand"]');
     console.log('Found expand buttons:', expandButtons.length);
