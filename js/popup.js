@@ -204,38 +204,35 @@ class WiFiKickstartApp {
   }
 
   // SIMPLE BASIC SPEED TEST - No enhanced features, just basic speed
-  async runBasicSpeedTest(isSimpleMode = false) {
-    this.uiManager.setSpeedTestLoading(isSimpleMode);
+// REPLACE the existing runBasicSpeedTest method with this:
+async runBasicSpeedTest(isSimpleMode = false) {
+  this.uiManager.setSpeedTestLoading(isSimpleMode);
+  
+  try {
+    // Use the new consolidated engine via background script
+    const response = await chrome.runtime.sendMessage({
+      action: "runBasicSpeedTest"  // This calls EnhancedSpeedTestEngine.runBasicSpeedTest()
+    });
     
-    try {
-      const speedData = await this.connectionManager.runSpeedTest();
+    if (response.success) {
+      const speedData = {
+        speed: response.data.results?.download?.speed || 0,
+        success: true
+      };
+      
       this.uiManager.updateSpeedTest(speedData, isSimpleMode);
-      this.updateNetworkScore();
+      this.dashboardManager.addDataPoint({ speed: speedData.speed });
       
-      // Store complete data point for dashboard
-      const dashboardResults = { speed: speedData.speed };
-      
-      // If in advanced mode, include current metrics
-      if (this.uiManager.isAdvancedMode) {
-        const metrics = this.connectionManager.getMetrics();
-        if (metrics.latency) dashboardResults.latency = metrics.latency;
-        if (metrics.jitter) dashboardResults.jitter = metrics.jitter;
-        
-        const score = this.connectionManager.calculateNetworkScore();
-        if (score !== null) dashboardResults.score = score;
-      }
-      
-      this.dashboardManager.addDataPoint(dashboardResults);
-      console.log('Dashboard data stored:', dashboardResults);
-      
-      // Update VPN detection after speed test
-      this.detectVPNUsage();
-      
-    } catch (error) {
-      console.error('Speed test failed:', error);
-      this.uiManager.updateSpeedTest({ success: false }, isSimpleMode);
+      console.log('✅ Popup using consolidated engine:', response.data);
+    } else {
+      throw new Error(response.error);
     }
+    
+  } catch (error) {
+    console.error('Speed test failed:', error);
+    this.uiManager.updateSpeedTest({ success: false }, isSimpleMode);
   }
+}
 
   // Combined diagnostics method that stores dashboard data
   async runFullDiagnostics() {
